@@ -14,6 +14,28 @@ it isn't in the real tool files (see the note in "Recent changes" below), becaus
 reviewer, and that person shouldn't be able to click through into leadership dashboards
 or other people's submissions.
 
+## Installing a page as an app (home screen / dock / desktop)
+
+Every page can be added as its own app-like icon, using the S&C logo, instead of
+just being a bookmark:
+
+- **iPhone/iPad (Safari):** open the page &rarr; Share &rarr; **Add to Home Screen**.
+- **Android (Chrome):** open the page &rarr; menu (&#8942;) &rarr; **Add to Home screen** /
+  **Install app**.
+- **Mac (Safari 17+, Sonoma or later):** open the page &rarr; File menu &rarr;
+  **Add to Dock**.
+- **Mac or Windows (Chrome or Edge):** open the page &rarr; click the install icon
+  in the address bar (or menu &rarr; **Install page as app** / **Apps** &rarr;
+  **Install this site as an app**).
+
+Each tool has its own icon setup (`manifest-*.json`), so whichever page someone
+installs — say, a coach installing just their checkpoint form — the icon that
+lands on their home screen/dock reopens that exact tool directly, not the main
+menu. Simon installing `index.html` gets an icon that opens the full menu.
+It's the same S&C logo everywhere; only the name under the icon differs per tool.
+This needs the real GitHub Pages URL (HTTPS) to work — it won't do anything useful
+opened as a local file straight off disk.
+
 ## Hosting this on GitHub Pages
 
 1. Push everything in this folder to a repo's default branch, unchanged —
@@ -70,6 +92,12 @@ coach_reflection_tool.html           <-- bilingual (EN/ES) self-reflection wizar
 
 coach_checkpoint_form.html           <-- early-season self-checkpoint form
 coach_checkpoint_dashboard.html      <-- leadership dashboard for checkpoints
+
+icon-512.png, icon-192.png,
+icon-180.png, favicon-32.png,
+favicon-16.png                       <-- shared app icon (S&C logo), all sizes
+manifest-*.json                      <-- one per page, for "install as app" (see above)
+sw.js                                <-- minimal service worker, required for installability
 ```
 
 This is a trimmed set — just what's needed for the interactive demo to run
@@ -78,6 +106,8 @@ PDFs aren't included here; ask Simon if you need those too.
 
 ## Recent changes in this build
 
+- **Every page can now be installed as an app**, using the S&C logo as its icon
+  — see "Installing a page as an app" above.
 - **Added a demo-only "All Tools" nav link.** Every page now has a small fixed
   link back to `index.html` in the bottom-left corner. Added only in this
   preview package, not in the real tool files in `tools/` — the real forms go
