@@ -6,6 +6,14 @@ All real staff names/emails have been replaced with role-based placeholders
 (Salem Lead, Greenville Assistant, Boston Coach 1, etc. — see below), and the
 underlying demo data (scores, cycles, personas) is otherwise unchanged.
 
+Every page in this preview has a small "&larr; All Tools" link fixed in the bottom-left
+corner that jumps straight back to `index.html`, so anyone exploring can bounce between
+tools without clicking all the way back out first. **This is a demo-only convenience** —
+it isn't in the real tool files (see the note in "Recent changes" below), because a real
+360/checkpoint form or reflection tool goes out as a single-purpose link to one coach or
+reviewer, and that person shouldn't be able to click through into leadership dashboards
+or other people's submissions.
+
 ## Hosting this on GitHub Pages
 
 1. Push everything in this folder to a repo's default branch, unchanged —
@@ -70,6 +78,12 @@ PDFs aren't included here; ask Simon if you need those too.
 
 ## Recent changes in this build
 
+- **Added a demo-only "All Tools" nav link.** Every page now has a small fixed
+  link back to `index.html` in the bottom-left corner. Added only in this
+  preview package, not in the real tool files in `tools/` — the real forms go
+  out as single-purpose links to individual coaches/reviewers, and they
+  shouldn't be able to click through into leadership dashboards or other
+  people's data from there.
 - **Checkpoint is now print/PDF based too, matching 360.** The checkpoint form
   (`coach_checkpoint_form.html`) now ends the same way the 360 form does: check
   your answers, confirm, then print the result as a PDF and send it to the

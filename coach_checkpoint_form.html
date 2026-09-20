@@ -542,6 +542,29 @@ p { margin: 0 0 14px; color: var(--ink-soft); }
 </style>
 </head>
 <body>
+<a href="index.html" class="spdp-back-to-all" aria-label="Back to all tools">&larr; All Tools</a>
+<style>
+.spdp-back-to-all {
+  position: fixed;
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 999999;
+  background: rgba(12,35,64,0.92);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  transition: background 0.15s, transform 0.1s;
+}
+.spdp-back-to-all:hover { background: rgba(189,48,57,0.95); }
+.spdp-back-to-all:active { transform: translateY(1px); }
+@media print { .spdp-back-to-all { display: none !important; } }
+</style>
+
 
 <header class="topbar">
   <div class="crest" id="brand-crest">RS</div>
