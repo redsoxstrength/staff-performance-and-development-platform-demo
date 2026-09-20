@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
+    var here = location.pathname.split('/').pop() || 'index.html';
+    location.replace('gate.html?next=' + encodeURIComponent(here + location.search));
+  }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boston Red Sox — 360 Dashboard</title>
+<style>
+:root {
+  --rs-red: #BD3039;
+  --rs-red-dark: #8C2128;
+  --rs-navy: #0C2340;
+  --rs-navy-light: #1A3357;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-mute: #888;
+  --line: #e5e7eb;
+  --line-soft: #f1f3f5;
+  --bg: #fafbfc;
+  --card: #ffffff;
+  --pill-bg: #f4f5f7;
+  --thriving: #2e7d32;
+  --steady: #ed8c00;
+  --surviving: #BD3039;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* TOPBAR */
+.topbar {
+  background: var(--rs-navy);
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--rs-red);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.brand-text { font-size: 14px; opacity: 0.95; }
+.brand-text b { letter-spacing: 0.3px; }
+.brand-text .sep { opacity: 0.5; margin: 0 6px; }
+.topbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.topbar-actions button {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.20);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.topbar-actions button:hover { background: rgba(255,255,255,0.20); }
+.topbar-actions button.primary { background: var(--rs-red); border-color: var(--rs-red-dark); font-weight: 600; }
+.topbar-actions button.primary:hover { background: var(--rs-red-dark); }
+
+/* SHELL */
+.shell { width: 100%; max-width: min(1280px, 94%); margin: 0 auto; padding: clamp(20px, 3vw, 36px) clamp(14px, 2vw, 32px) 80px; }
+
+/* CARDS */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: clamp(20px, 3vw, 30px); box-shadow: var(--shadow); margin-bottom: 16px; }
+.page-header { margin-bottom: 20px; }
+.eyebrow { font-size: 11px; letter-spacing: 1.5px; font-weight: 700; color: var(--rs-red); margin-bottom: 6px; text-transform: uppercase; }
+h1 { font-size: 26px; margin: 0 0 6px; color: var(--rs-navy); letter-spacing: -0.2px; }
+h2 { font-size: 18px; margin: 0 0 12px; color: var(--rs-navy); letter-spacing: -0.2px; }
+h3 { font-size: 15px; margin: 0 0 6px; color: var(--ink); font-weight: 600; }
+p { margin: 0 0 12px; color: var(--ink-soft); }
+.muted { color: var(--ink-mute); font-size: 13px; }
+
+/* EMPTY STATE / DROPZONE */
+.dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--card);
+  transition: border-color 0.15s, background 0.15s;
+  margin-bottom: 16px;
+}
+.dropzone.dragover { border-color: var(--rs-red); background: #fff5f5; }
+.dropzone .icon { font-size: 36px; margin-bottom: 12px; color: var(--rs-navy); }
+.dropzone h2 { margin-bottom: 6px; }
+.dropzone .file-input { display: inline-block; margin-top: 12px; }
+.dropzone .file-input button {
+  background: var(--rs-red);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.dropzone .file-input button:hover { background: var(--rs-red-dark); }
+
+/* KPI ROW */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.kpi .v { font-size: 22px; font-weight: 700; color: var(--rs-navy); }
+.kpi .l { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+/* ROSTER */
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
+.roster-tile {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.05s, box-shadow 0.12s;
+}
+.roster-tile:hover { border-color: var(--rs-navy); box-shadow: 0 2px 8px rgba(12,35,64,0.08); }
+.roster-tile:active { transform: translateY(1px); }
+.roster-tile.no-feedback { background: var(--line-soft); border-style: dashed; cursor: default; }
+.roster-tile.no-feedback:hover { border-color: var(--line); box-shadow: none; }
+.roster-tile .name { font-size: 15px; font-weight: 700; color: var(--rs-navy); margin-bottom: 2px; }
+.roster-tile .role { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-mute); margin-bottom: 12px; }
+.roster-tile .reviewer-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  background: var(--rs-navy);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-weight: 600;
+}
+.roster-tile .reviewer-count.below-threshold { background: var(--steady); }
+.roster-tile .reviewer-count.no-feedback-pill { background: transparent; color: var(--ink-mute); border: 1px dashed var(--line); }
+.roster-tile .latest-meta { font-size: 11px; color: var(--ink-mute); margin-top: 8px; }
+
+/* SUBMISSIONS ADMIN LIST */
+.submission-list { list-style: none; padding: 0; margin: 12px 0 0; }
+.submission-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; gap: 12px; }
+.submission-list .meta { color: var(--ink-mute); font-size: 12px; }
+.submission-list button { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; font-family: inherit; }
+.submission-list button:hover { background: var(--pill-bg); color: var(--rs-red); }
+
+/* COACH DETAIL */
+.detail-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 12px; }
+.detail-head .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--rs-navy); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+.detail-head .who { display: flex; align-items: center; gap: 14px; }
+
+.mode-toggle {
+  display: inline-flex;
+  background: var(--pill-bg);
+  border-radius: 100px;
+  padding: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mode-toggle button {
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+.mode-toggle button.active { background: var(--rs-navy); color: #fff; }
+
+/* QUESTION SECTION (the building block of per-coach view) */
+.q-section {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.q-section:last-of-type { border-bottom: none; padding-bottom: 0; }
+.q-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--line-soft);
+  border-left: 4px solid var(--rs-navy);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.q-head .q-title { font-size: 15px; font-weight: 700; color: var(--rs-navy); }
+.q-head .q-sub { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.7px; margin-top: 3px; font-weight: 600; }
+
+.score-block { text-align: right; }
+.score-block .avg { font-size: 22px; font-weight: 800; color: var(--rs-navy); line-height: 1; }
+.score-block .meta { font-size: 11px; color: var(--ink-mute); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; }
+.score-block .range { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+.score-block.empty .avg { color: var(--ink-mute); font-size: 14px; font-weight: 600; }
+
+/* COMMENT */
+.comment {
+  background: var(--line-soft);
+  border-left: 3px solid var(--rs-navy);
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.comment .attribution {
+  font-weight: 700;
+  color: var(--rs-navy);
+  margin-right: 4px;
+  font-style: normal;
+}
+.comment .attribution.anonymous { color: var(--ink-mute); font-weight: 600; font-style: italic; }
+.comment .body { font-style: italic; }
+.no-comments { color: var(--ink-mute); font-size: 12px; font-style: italic; padding: 6px 0; }
+
+/* GROUP / DEPARTMENT VIEW */
+.dept-bars { display: grid; gap: 8px; margin-top: 14px; }
+.dept-bar-row { display: grid; grid-template-columns: 1.4fr auto 60px; gap: 10px; align-items: center; font-size: 13px; padding: 4px 0; }
+.bar-track { background: var(--line-soft); border-radius: 4px; height: 14px; position: relative; overflow: hidden; }
+.bar-fill { position: absolute; top: 0; left: 0; bottom: 0; background: var(--rs-navy); border-radius: 4px; transition: width 0.3s; }
+.bar-fill.low { background: var(--surviving); }
+.bar-fill.mid { background: var(--steady); }
+.bar-fill.high { background: var(--thriving); }
+.dept-bar-row .label { color: var(--ink); font-weight: 500; }
+.dept-bar-row .num { font-weight: 700; color: var(--rs-navy); text-align: right; }
+
+/* BACK BUTTON */
+.back-btn { background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit; margin-bottom: 12px; }
+.back-btn:hover { background: var(--pill-bg); }
+
+/* CSV PASTE OVERLAY */
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(12,35,64,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.overlay .modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 620px; width: 90%; max-height: 80vh; overflow: auto; }
+.overlay .modal textarea { width: 100%; min-height: 200px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; resize: vertical; }
+.overlay .modal .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+.btn-primary { background: var(--rs-red); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 14px; }
+.btn-primary:hover { background: var(--rs-red-dark); }
+.btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; }
+.btn-ghost:hover { background: var(--pill-bg); }
+
+.pdf-banner {
+  background: #FFF3CD;
+  border: 1px solid #F5C34B;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #6B4F0C;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* PRINT STYLES */
+@media print {
+  @page { margin: 12mm; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff !important; }
+  .topbar, .topbar-actions, .back-btn, .mode-toggle, .admin-only, .dropzone, .print-hide { display: none !important; }
+  .shell { padding: 0 !important; max-width: 100% !important; }
+  .card { box-shadow: none !important; border: 1px solid #d0d4d9 !important; margin-bottom: 10px !important; padding: 14px !important; break-inside: avoid; page-break-inside: avoid; }
+  .q-section { break-inside: avoid; page-break-inside: avoid; }
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 15px !important; }
+  .pdf-banner { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="brand-text">
+      <b id="brand-name">Boston Red Sox</b><span class="sep">·</span>
+      <span id="brand-dept">S&amp;C · Player Development</span><span class="sep">·</span>
+      <span>360 dashboard</span>
+    </div>
+  </div>
+  <div class="topbar-actions" id="topbar-actions"></div>
+</header>
+
+<div class="shell" id="root"></div>
+
+<script>
+//==============================================================================
+// CONFIG
+//==============================================================================
+const BRAND = {
+  org: 'Boston Red Sox',
+  orgShort: 'Boston Red Sox',
+  orgLabel: 'BOSTON RED SOX',
+  dept: 'S&C · Player Development',
+  deptShort: 'S&C',
+  primary: '#BD3039', primaryDark: '#8C2128',
+  secondary: '#0C2340', secondaryLight: '#1A3357',
+};
+
+// Minimum reviewers required before per-coach feedback is shown to the coach (PDF mode).
+// Below threshold, the dashboard shows "Feedback collection in progress" in PDF view.
+// The Coordinator's attributed view always shows everything.
+const PDF_MIN_REVIEWERS = 3;
+
+//==============================================================================
+// STAFF ROSTER — mirrors the form and the platform prototype.
+//==============================================================================
+const STAFF = [
+  { id: 'marcus-webb',     name: 'Marcus Webb',      role: 'Department Director' },
+  { id: 'erin-coleman',   name: 'Erin Coleman',    role: 'Department Coordinator' },
+  { id: 'derek-simmons',  name: 'Derek Simmons',   role: 'Assistant Coordinator' },
+  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Salem Lead' },
+  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Salem Assistant' },
+  { id: 'austin-reed', name: 'Austin Reed',  role: 'Greenville Lead' },
+  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Greenville Assistant' },
+  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Portland Lead' },
+  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Portland Assistant' },
+  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Worcester Lead' },
+  { id: 'emily-turner', name: 'Emily Turner',  role: 'Worcester Assistant' },
+  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Florida Lead' },
+  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Florida Assistant' },
+  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Rehab Lead' },
+  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Rehab Assistant' },
+  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'Boston Coach 1' },
+  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'Boston Coach 2' },
+  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'Boston Rehab' },
+];
+
+const QUESTION_SECTIONS = [
+  { id: 'strengthsTeam', label: 'Strengths — for the team',          textPath: ['strengths', 'forTeam'],          scored: true },
+  { id: 'strengthsMe',   label: 'Strengths — for me in my role',     textPath: ['strengths', 'forMe'],            scored: true },
+  { id: 'growthTeam',    label: 'Growth — for the team',             textPath: ['growth', 'forTeam'],             scored: true },
+  { id: 'growthMe',      label: 'Growth — for me in my role',        textPath: ['growth', 'forMe'],               scored: true },
+  { id: 'ocStrengths',   label: 'Observed coaching — strengths',     textPath: ['observedCoaching', 'strengths'], scored: true },
+  { id: 'ocGrowth',      label: 'Observed coaching — to fine-tune',  textPath: ['observedCoaching', 'growthAreas'], scored: true },
+  { id: 'blindSpots',    label: 'Blind spots',                       textPath: ['blindSpots'],                    scored: false },
+  { id: 'acknowledgments', label: 'Acknowledgments',                 textPath: ['acknowledgments'],               scored: false },
+];
+
+//==============================================================================
+// STATE
+//==============================================================================
+const STORAGE_KEY = 'coach_360_dashboard_v1';
+const state = {
+  submissions: [],
+  view: 'roster',
+  selectedCoachId: null,
+  attributedMode: true,  // true = Coordinator's view with reviewer names; false = PDF-export view
+  showCsvPaste: false,
+};
+if (typeof window !== 'undefined') window.state = state;
+
+//==============================================================================
+// PERSISTENCE
+//==============================================================================
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ submissions: state.submissions })); } catch (e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.submissions) state.submissions = d.submissions;
+  } catch (e) {}
+}
+
+//==============================================================================
+// HELPERS
+//==============================================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function initials(name) {
+  if (!name) return '?';
+  return name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+function getNested(obj, path) {
+  return path.reduce((acc, k) => (acc == null ? acc : acc[k]), obj);
+}
+function staffById(id) { return STAFF.find(s => s.id === id); }
+function submissionsFor(coachId) {
+  return state.submissions.filter(s => s.recipient?.coachId === coachId);
+}
+
+//==============================================================================
+// AGGREGATION
+//==============================================================================
+function aggregateScores(subs, scoreKey) {
+  const scores = subs.map(s => s.feedback?.scores?.[scoreKey]).filter(v => typeof v === 'number');
+  if (scores.length === 0) return { count: 0, avg: null, min: null, max: null };
+  const sum = scores.reduce((a, b) => a + b, 0);
+  return {
+    count: scores.length,
+    avg: (sum / scores.length).toFixed(1),
+    min: Math.min(...scores),
+    max: Math.max(...scores),
+  };
+}
+
+function collectComments(subs, textPath) {
+  return subs
+    .map(s => ({ text: getNested(s.feedback, textPath), reviewer: s.reviewer, relationship: s.relationship, submittedAt: s.submittedAt }))
+    .filter(c => c.text && c.text.trim().length > 0);
+}
+
+//==============================================================================
+// FILE INGEST
+//==============================================================================
+function ingestFiles(fileList) {
+  const promises = Array.from(fileList).map(file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const j = JSON.parse(e.target.result);
+        resolve([j]);
+      } catch (err) { reject(err); }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(file);
+  }));
+  return Promise.all(promises).then(results => {
+    const flat = results.flat();
+    return mergeSubmissions(flat);
+  });
+}
+function mergeSubmissions(incoming) {
+  const existing = new Set(state.submissions.map(s => s.responseId));
+  let added = 0;
+  for (const s of incoming) {
+    if (!s) continue;
+    if (s.kind !== '360') continue; // ignore non-360 payloads (e.g., checkpoint forms)
+    if (s.responseId && existing.has(s.responseId)) continue;
+    if (!s.responseId) s.responseId = `360-${s.recipient?.coachId || 'unknown'}-${Date.now().toString(36)}-${added}`;
+    state.submissions.push(s);
+    existing.add(s.responseId);
+    added++;
+  }
+  saveState();
+  return added;
+}
+
+function handleFiles(files) {
+  ingestFiles(files).then(added => {
+    if (added === 0) {
+      alert('No new 360 submissions found. (Files must be JSON with kind = "360".)');
+    }
+    render();
+  }).catch(err => {
+    alert('Could not load file: ' + err.message);
+  });
+}
+
+function removeSubmission(id) {
+  if (!confirm('Remove this submission from the local store? (The underlying file stays put.)')) return;
+  state.submissions = state.submissions.filter(s => s.responseId !== id);
+  saveState();
+  render();
+}
+
+//==============================================================================
+// VIEW MANAGEMENT
+//==============================================================================
+function setView(v) {
+  state.view = v;
+  state.selectedCoachId = null;
+  render();
+}
+function selectCoach(coachId) {
+  state.selectedCoachId = coachId;
+  state.view = 'coach';
+  render();
+}
+function toggleAttributedMode() {
+  state.attributedMode = !state.attributedMode;
+  render();
+}
+
+//==============================================================================
+// RENDER — TOPBAR ACTIONS
+//==============================================================================
+function renderTopbarActions() {
+  const hasData = state.submissions.length > 0;
+  const html = `
+    ${hasData ? `<button onclick="setView('roster')">All coaches</button>
+                 <button onclick="setView('group')">Department view</button>
+                 <button onclick="window.print()">Print</button>` : ''}
+    <button class="primary" onclick="document.getElementById('hidden-file-input').click()">+ Add submissions</button>
+  `;
+  document.getElementById('topbar-actions').innerHTML = html;
+}
+
+//==============================================================================
+// RENDER — EMPTY STATE
+//==============================================================================
+function renderEmpty() {
+  return `
+    <div class="page-header">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · 360 dashboard</div>
+      <h1>Drop submissions in to begin</h1>
+      <p>Each 360 submission is one reviewer writing about one colleague. They accumulate per recipient. The dashboard groups them by recipient and presents an aggregated view.</p>
+    </div>
+    <div class="dropzone" id="dropzone">
+      <div class="icon">⇪</div>
+      <h2>Drop 360 JSON files here</h2>
+      <p class="muted">Or use the button below. Files saved in your browser so you can keep adding as submissions come in.</p>
+      <div class="file-input">
+        <button onclick="document.getElementById('hidden-file-input').click()">Choose files…</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>How this fits the rest of the system</h3>
+      <p style="font-size:13px;">
+        <b>1.</b> Staff complete the 360 form (one colleague at a time). Each submission emails you a JSON file.<br>
+        <b>2.</b> You drop those JSON files into this dashboard. They group by who they are about.<br>
+        <b>3.</b> Below threshold (${PDF_MIN_REVIEWERS} reviewers), each coach is held in "collection in progress." Above threshold, you can export their PDF.<br>
+        <b>4.</b> Coordinator view shows reviewer attribution; PDF view strips it. Toggle on each coach's page.
+      </p>
+    </div>
+  `;
+}
+
+//==============================================================================
+// RENDER — ROSTER
+//==============================================================================
+function renderRoster() {
+  if (!state.submissions.length) return renderEmpty();
+
+  // Bucket submissions by recipient
+  const recipientIds = new Set(state.submissions.map(s => s.recipient?.coachId).filter(Boolean));
+  const totalSubmissions = state.submissions.length;
+  const uniqueRecipients = recipientIds.size;
+  const aboveThreshold = STAFF.filter(s => submissionsFor(s.id).length >= PDF_MIN_REVIEWERS).length;
+
+  // Sort: above threshold first, then below, then no-feedback
+  const sorted = [...STAFF].sort((a, b) => {
+    const ca = submissionsFor(a.id).length, cb = submissionsFor(b.id).length;
+    if ((ca === 0) !== (cb === 0)) return ca === 0 ? 1 : -1;
+    const aboveA = ca >= PDF_MIN_REVIEWERS, aboveB = cb >= PDF_MIN_REVIEWERS;
+    if (aboveA !== aboveB) return aboveA ? -1 : 1;
+    return cb - ca;
+  });
+
+  return `
+    <div class="page-header">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · 360 dashboard</div>
+      <h1>360 input received — ${totalSubmissions} submission${totalSubmissions === 1 ? '' : 's'} across ${uniqueRecipients} ${uniqueRecipients === 1 ? 'colleague' : 'colleagues'}</h1>
+      <p class="muted">Click a coach to read their feedback. ${PDF_MIN_REVIEWERS}+ reviewers required before PDF export. Below threshold, you can still read everything; the coach just does not receive their report yet.</p>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="v">${totalSubmissions}</div><div class="l">Total submissions</div></div>
+      <div class="kpi"><div class="v">${uniqueRecipients}</div><div class="l">Coaches with input</div></div>
+      <div class="kpi"><div class="v">${aboveThreshold}</div><div class="l">Above PDF threshold</div></div>
+      <div class="kpi"><div class="v">${STAFF.length - uniqueRecipients}</div><div class="l">No input yet</div></div>
+    </div>
+
+    <div class="roster">
+      ${sorted.map(coach => {
+        const subs = submissionsFor(coach.id);
+        const count = subs.length;
+        const hasFeedback = count > 0;
+        const above = count >= PDF_MIN_REVIEWERS;
+        const latest = hasFeedback ? subs.sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''))[0] : null;
+        const latestDate = latest ? (latest.submittedAt || '').slice(0, 10) : '';
+
+        if (!hasFeedback) {
+          return `
+            <div class="roster-tile no-feedback">
+              <div class="name">${escapeHtml(coach.name)}</div>
+              <div class="role">${escapeHtml(coach.role)}</div>
+              <span class="reviewer-count no-feedback-pill">No input yet</span>
+            </div>
+          `;
+        }
+        return `
+          <div class="roster-tile" onclick="selectCoach('${escapeHtml(coach.id)}')">
+            <div class="name">${escapeHtml(coach.name)}</div>
+            <div class="role">${escapeHtml(coach.role)}</div>
+            <span class="reviewer-count ${above ? '' : 'below-threshold'}">${count} reviewer${count === 1 ? '' : 's'}${above ? ' · PDF-ready' : ` · ${PDF_MIN_REVIEWERS - count} below threshold`}</span>
+            <div class="latest-meta">Latest: ${escapeHtml(latestDate)}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="card admin-only" style="margin-top: 20px;">
+      <h3>All submissions</h3>
+      <ul class="submission-list">
+        ${state.submissions.slice().reverse().map(s => `
+          <li>
+            <div>
+              <b>${escapeHtml(s.reviewer?.name || 'Unknown')}</b> &rarr; <b>${escapeHtml(s.recipient?.name || 'Unknown')}</b>
+              <div class="meta">${escapeHtml((s.submittedAt || '').slice(0, 16).replace('T', ' '))} &middot; ID ${escapeHtml(s.responseId)}</div>
+            </div>
+            <button onclick="removeSubmission('${escapeHtml(s.responseId)}')">Remove</button>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+}
+
+//==============================================================================
+// RENDER — COACH DETAIL
+//==============================================================================
+function renderCoach() {
+  const coach = staffById(state.selectedCoachId);
+  if (!coach) { setView('roster'); return ''; }
+  const subs = submissionsFor(coach.id);
+  if (!subs.length) {
+    return `<button class="back-btn" onclick="setView('roster')">&larr; Back</button>
+            <div class="card"><h2>No input received for ${escapeHtml(coach.name)} yet.</h2></div>`;
+  }
+
+  const reviewerCount = subs.length;
+  const aboveThreshold = reviewerCount >= PDF_MIN_REVIEWERS;
+  const isPdfMode = !state.attributedMode;
+  const dates = subs.map(s => s.submittedAt).filter(Boolean).sort();
+  const earliest = dates[0] ? dates[0].slice(0, 10) : '';
+  const latest = dates[dates.length - 1] ? dates[dates.length - 1].slice(0, 10) : '';
+
+  // In PDF mode below threshold, show a holding view
+  if (isPdfMode && !aboveThreshold) {
+    return `
+      <button class="back-btn print-hide" onclick="setView('roster')">&larr; All coaches</button>
+      <div class="card">
+        <div class="detail-head">
+          <div class="who">
+            <div class="avatar">${escapeHtml(initials(coach.name))}</div>
+            <div>
+              <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · 360 input</div>
+              <h1>${escapeHtml(coach.name)}</h1>
+              <div class="muted">${escapeHtml(coach.role)}</div>
+            </div>
+          </div>
+          <div class="mode-toggle print-hide">
+            <button class="${state.attributedMode ? 'active' : ''}" onclick="state.attributedMode = true; render();">Coordinator view</button>
+            <button class="${!state.attributedMode ? 'active' : ''}" onclick="state.attributedMode = false; render();">PDF preview</button>
+          </div>
+        </div>
+        <div class="pdf-banner">
+          <div>
+            <b>Below threshold for PDF release.</b> Currently ${reviewerCount} reviewer${reviewerCount === 1 ? '' : 's'}. At least ${PDF_MIN_REVIEWERS} required before the coach receives their report. Switch to Coordinator view to read what has come in so far.
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <button class="back-btn print-hide" onclick="setView('roster')">&larr; All coaches</button>
+    ${isPdfMode ? `
+      <div class="pdf-banner print-hide">
+        <div>
+          <b>PDF preview.</b> Reviewer names are stripped. This is what the coach receives. Use the Print button in the topbar to save as PDF.
+        </div>
+        <button class="btn-ghost" onclick="state.attributedMode = true; render();">Back to Coordinator view</button>
+      </div>
+    ` : ''}
+
+    <div class="card">
+      <div class="detail-head">
+        <div class="who">
+          <div class="avatar">${escapeHtml(initials(coach.name))}</div>
+          <div>
+            <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · 360 input</div>
+            <h1>${escapeHtml(coach.name)}</h1>
+            <div class="muted">${escapeHtml(coach.role)} &middot; ${reviewerCount} reviewer${reviewerCount === 1 ? '' : 's'} &middot; ${escapeHtml(earliest)}${earliest !== latest ? ' to ' + escapeHtml(latest) : ''}</div>
+          </div>
+        </div>
+        <div class="mode-toggle print-hide">
+          <button class="${state.attributedMode ? 'active' : ''}" onclick="state.attributedMode = true; render();">Coordinator view</button>
+          <button class="${!state.attributedMode ? 'active' : ''}" onclick="state.attributedMode = false; render();">PDF preview</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Input by section</h2>
+      <p class="muted">${isPdfMode ? 'This is the version the coach receives. Comments group by area with no reviewer attribution.' : 'You see all submissions with reviewer attribution. The coach will receive the PDF-stripped version.'}</p>
+
+      ${QUESTION_SECTIONS.map(section => renderSection(section, subs, isPdfMode)).join('')}
+    </div>
+  `;
+}
+
+function renderSection(section, subs, isPdfMode) {
+  const agg = section.scored ? aggregateScores(subs, section.id) : null;
+  const comments = collectComments(subs, section.textPath);
+
+  let scoreBlock;
+  if (!section.scored) {
+    scoreBlock = '<div class="score-block empty"><div class="avg">text only</div><div class="meta">no score</div></div>';
+  } else if (agg.count === 0) {
+    scoreBlock = '<div class="score-block empty"><div class="avg">—</div><div class="meta">no scores</div></div>';
+  } else {
+    scoreBlock = `
+      <div class="score-block">
+        <div class="avg">${agg.avg}<span style="font-size: 12px; color: var(--ink-mute); font-weight: 400;"> / 5</span></div>
+        <div class="meta">Avg · ${agg.count} of ${subs.length}</div>
+        <div class="range">Range ${agg.min}&ndash;${agg.max}</div>
+      </div>
+    `;
+  }
+
+  const commentBody = comments.length === 0
+    ? '<div class="no-comments">No comments submitted for this area.</div>'
+    : comments.map(c => `
+        <div class="comment">
+          ${isPdfMode
+            ? `<span class="attribution anonymous">Colleague:</span>`
+            : `<span class="attribution">${escapeHtml(c.reviewer?.name || 'Unknown')}${c.relationship ? ` <span style="font-weight: 400; color: var(--ink-mute); font-size: 11px; font-style: italic;">(${escapeHtml(c.relationship)})</span>` : ''}:</span>`}
+          <span class="body">&ldquo;${escapeHtml(c.text)}&rdquo;</span>
+        </div>
+      `).join('');
+
+  return `
+    <div class="q-section">
+      <div class="q-head">
+        <div>
+          <div class="q-title">${escapeHtml(section.label)}</div>
+          <div class="q-sub">${comments.length} of ${subs.length} ${comments.length === 1 ? 'comment' : 'comments'}</div>
+        </div>
+        ${scoreBlock}
+      </div>
+      ${commentBody}
+    </div>
+  `;
+}
+
+//==============================================================================
+// RENDER — DEPARTMENT VIEW
+//==============================================================================
+function renderGroup() {
+  if (!state.submissions.length) return renderEmpty();
+
+  // Aggregate scores across ALL submissions, per question
+  const allAggs = {};
+  for (const q of QUESTION_SECTIONS) {
+    if (!q.scored) continue;
+    allAggs[q.id] = aggregateScores(state.submissions, q.id);
+  }
+
+  // Reviewer participation count
+  const reviewers = new Set(state.submissions.map(s => s.reviewer?.email).filter(Boolean));
+  const reviewerCount = reviewers.size;
+
+  // Recipient coverage
+  const recipientCounts = STAFF.map(s => ({ coach: s, count: submissionsFor(s.id).length }));
+  const aboveThresholdCount = recipientCounts.filter(r => r.count >= PDF_MIN_REVIEWERS).length;
+  const someInputCount = recipientCounts.filter(r => r.count > 0).length;
+
+  // Score band class
+  const bandClass = (avg) => {
+    if (avg == null) return '';
+    const v = parseFloat(avg);
+    if (v < 2.5) return 'low';
+    if (v < 3.5) return 'mid';
+    return 'high';
+  };
+
+  return `
+    <button class="back-btn print-hide" onclick="setView('roster')">&larr; All coaches</button>
+
+    <div class="page-header">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · Department view</div>
+      <h1>Team-wide 360 input</h1>
+      <p class="muted">Aggregated across all ${state.submissions.length} submissions. This view stays leadership-only and is not shared with coaches. Use it for workshop planning and team-wide acknowledgments.</p>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="v">${state.submissions.length}</div><div class="l">Total submissions</div></div>
+      <div class="kpi"><div class="v">${reviewerCount}</div><div class="l">Unique reviewers</div></div>
+      <div class="kpi"><div class="v">${someInputCount}</div><div class="l">Coaches with input</div></div>
+      <div class="kpi"><div class="v">${aboveThresholdCount}</div><div class="l">Above PDF threshold</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Score distributions across the staff</h2>
+      <p class="muted">Average across every submission. Range is the lowest and highest individual rating seen anywhere in the dataset.</p>
+      <div class="dept-bars">
+        ${QUESTION_SECTIONS.filter(q => q.scored).map(q => {
+          const a = allAggs[q.id];
+          const w = a.avg == null ? 0 : (parseFloat(a.avg) / 5) * 100;
+          return `
+            <div class="dept-bar-row">
+              <div class="label">${escapeHtml(q.label)}</div>
+              <div class="bar-track"><div class="bar-fill ${bandClass(a.avg)}" style="width: ${w}%;"></div></div>
+              <div class="num">${a.avg == null ? '—' : a.avg}${a.count > 0 ? `<span style="font-size: 10px; color: var(--ink-mute); margin-left: 4px;">${a.min}-${a.max}</span>` : ''}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Themes by section</h2>
+      <p class="muted">All comments grouped by area across every submission. Useful for spotting team-wide patterns and surfacing topics for group conversations or workshops. Reviewer attribution shown for your own pattern-reading.</p>
+      ${QUESTION_SECTIONS.map(section => {
+        const comments = collectComments(state.submissions, section.textPath);
+        if (comments.length === 0) return '';
+        return `
+          <div class="q-section">
+            <div class="q-head">
+              <div>
+                <div class="q-title">${escapeHtml(section.label)}</div>
+                <div class="q-sub">${comments.length} comments across the staff</div>
+              </div>
+            </div>
+            ${comments.map(c => {
+              const aboutName = state.submissions.find(s => s.feedback && getNested(s.feedback, section.textPath) === c.text)?.recipient?.name || '';
+              return `
+                <div class="comment">
+                  <span class="attribution">${escapeHtml(c.reviewer?.name || 'Unknown')}</span>
+                  <span style="font-size: 11px; color: var(--ink-mute); margin-right: 6px;">about ${escapeHtml(aboutName)}:</span>
+                  <span class="body">&ldquo;${escapeHtml(c.text)}&rdquo;</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+//==============================================================================
+// MAIN RENDER
+//==============================================================================
+function render() {
+  renderTopbarActions();
+  let html = '';
+  if (state.view === 'coach') html = renderCoach();
+  else if (state.view === 'group') html = renderGroup();
+  else html = state.submissions.length ? renderRoster() : renderEmpty();
+  document.getElementById('root').innerHTML = html;
+  setupDropzone();
+}
+
+function setupDropzone() {
+  const dz = document.getElementById('dropzone');
+  if (!dz) return;
+  ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover');
+  }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); e.stopPropagation();
+    if (ev === 'dragleave' && e.target !== dz) return;
+    dz.classList.remove('dragover');
+  }));
+  dz.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  });
+}
+
+//==============================================================================
+// INIT
+//==============================================================================
+loadState();
+
+const input = document.createElement('input');
+input.type = 'file';
+input.id = 'hidden-file-input';
+input.style.display = 'none';
+input.multiple = true;
+input.accept = '.json,application/json';
+input.addEventListener('change', e => handleFiles(e.target.files));
+document.body.appendChild(input);
+
+// Page-level drag/drop
+window.addEventListener('dragover', e => { e.preventDefault(); });
+window.addEventListener('drop', e => {
+  e.preventDefault();
+  if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+});
+
+render();
+</script>
+</body>
+</html>

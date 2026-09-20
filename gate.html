@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coach Performance & Development Platform</title>
+<style>
+  :root {
+    --rs-red: #BD3039;
+    --rs-red-dark: #8C2128;
+    --rs-navy: #0C2340;
+    --bg: #0C2340;
+    --surface: #FFFFFF;
+    --text: #1A1A1A;
+    --text-2: #5F5E5A;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%; margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, var(--rs-navy) 0%, #1A3357 100%);
+  }
+  body { display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 36px 32px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--rs-red-dark); font-weight: 700; margin: 0 0 8px;
+  }
+  h1 { font-size: 19px; margin: 0 0 6px; color: var(--rs-navy); }
+  p.sub { margin: 0 0 22px; font-size: 13.5px; color: var(--text-2); line-height: 1.5; }
+  label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; }
+  input[type="password"] {
+    width: 100%; padding: 11px 12px; font-size: 15px;
+    border: 1px solid #D8D5CB; border-radius: 8px; margin-bottom: 14px;
+    font-family: inherit;
+  }
+  input[type="password"]:focus { outline: 2px solid var(--rs-red); outline-offset: 1px; }
+  button {
+    width: 100%; padding: 11px 12px; font-size: 14.5px; font-weight: 600;
+    background: var(--rs-red); color: #fff; border: none; border-radius: 8px;
+    cursor: pointer; font-family: inherit;
+  }
+  button:hover { background: var(--rs-red-dark); }
+  .error {
+    display: none; background: #FCEBEB; border: 1px solid #E9B8B8; color: #791F1F;
+    border-radius: 8px; padding: 9px 12px; font-size: 13px; margin-bottom: 14px;
+  }
+  .error.show { display: block; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="eyebrow">Boston Red Sox &middot; S&amp;C Player Development</p>
+    <h1>Coach Performance &amp; Development Platform</h1>
+    <p class="sub">This is a shared preview link. Enter the password you were given to continue.</p>
+    <div id="err" class="error">That password didn't work — try again.</div>
+    <form id="gate-form" autocomplete="off">
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autofocus autocomplete="current-password">
+      <button type="submit">Enter</button>
+    </form>
+  </div>
+
+<script>
+(function () {
+  // SHA-256 of the shared password. Change the password by computing a new
+  // hash and pasting it here — e.g. in a browser console:
+  //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourNewPassword'))
+  //     .then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join('')))
+  var PASSWORD_HASH = 'dc2f9a141a22072ed0b6befce6c0c04368aa9534e7c58685c5cce4139ade8f89';
+  var GATE_KEY = 'spdp_gate_ok_v1';
+
+  function sha256Hex(text) {
+    var enc = new TextEncoder().encode(text);
+    return crypto.subtle.digest('SHA-256', enc).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+        return b.toString(16).padStart(2, '0');
+      }).join('');
+    });
+  }
+
+  function targetPage() {
+    var params = new URLSearchParams(location.search);
+    var next = params.get('next');
+    if (next && next.startsWith('/')) next = next.slice(1); // keep it relative
+    return next || 'index.html';
+  }
+
+  // Already unlocked this browser session? Skip straight through.
+  if (sessionStorage.getItem(GATE_KEY) === '1') {
+    location.replace(targetPage());
+    return;
+  }
+
+  document.getElementById('gate-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var val = document.getElementById('pw').value;
+    sha256Hex(val).then(function (hex) {
+      if (hex === PASSWORD_HASH) {
+        sessionStorage.setItem(GATE_KEY, '1');
+        location.replace(targetPage());
+      } else {
+        document.getElementById('err').classList.add('show');
+        document.getElementById('pw').value = '';
+        document.getElementById('pw').focus();
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

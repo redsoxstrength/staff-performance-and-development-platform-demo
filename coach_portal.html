@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
+    var here = location.pathname.split('/').pop() || 'index.html';
+    location.replace('gate.html?next=' + encodeURIComponent(here + location.search));
+  }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Coach Checkpoint</title>
+<style>
+:root {
+  --rs-red: #BD3039;
+  --rs-red-dark: #8C2128;
+  --rs-navy: #0C2340;
+  --rs-navy-light: #1A3357;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-mute: #888;
+  --line: #e5e7eb;
+  --line-soft: #f1f3f5;
+  --bg: #fafbfc;
+  --card: #ffffff;
+  --pill-bg: #f4f5f7;
+  --thriving: #2e7d32;
+  --steady: #ed8c00;
+  --surviving: #BD3039;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-lift: 0 4px 12px rgba(12,35,64,0.10), 0 12px 28px rgba(12,35,64,0.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* TOPBAR */
+.topbar {
+  background: var(--rs-navy);
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 3px solid var(--rs-red);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.topbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.topbar-actions button {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.20);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.topbar-actions button:hover { background: rgba(255,255,255,0.20); }
+.topbar-actions button.primary {
+  background: var(--rs-red);
+  border-color: var(--rs-red-dark);
+  font-weight: 600;
+}
+.topbar-actions button.primary:hover { background: var(--rs-red-dark); }
+.crest-wrap {
+  width: 38px; height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.brand-text { font-size: 13px; opacity: 0.95; min-width: 0; }
+.brand-text b { letter-spacing: 0.3px; }
+.brand-text .sep { opacity: 0.4; margin: 0 6px; }
+
+/* SHELL */
+.shell { max-width: 1100px; margin: 0 auto; padding: 22px; }
+@media (max-width: 600px) { .shell { padding: 14px; } }
+
+/* CARDS */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: var(--rs-red);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+h1 { font-size: 26px; margin: 0 0 8px; color: var(--rs-navy); letter-spacing: -0.2px; }
+h2 { font-size: 18px; margin: 0 0 12px; color: var(--rs-navy); letter-spacing: -0.2px; }
+h3 { font-size: 14px; margin: 0; color: var(--ink); font-weight: 600; }
+p { margin: 0 0 12px; color: var(--ink-soft); }
+.muted { color: var(--ink-mute); font-size: 13px; }
+
+/* SETUP FORM */
+.field { margin-bottom: 18px; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.field .hint { font-size: 12px; color: var(--ink-mute); margin-bottom: 8px; }
+.field input[type=text], .field select, .field textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+.field input[type=text]:focus, .field select:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--rs-navy);
+  box-shadow: 0 0 0 3px rgba(12,35,64,0.10);
+}
+.field textarea { min-height: 80px; resize: vertical; line-height: 1.55; }
+
+/* BUTTONS */
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.05s;
+  border: none;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--rs-red); color: #fff; }
+.btn-primary:hover { background: var(--rs-red-dark); }
+.btn-primary:disabled { background: #c4a8aa; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.btn-ghost:hover { background: var(--pill-bg); }
+.btn-link {
+  background: transparent;
+  color: var(--rs-navy);
+  border: none;
+  text-decoration: underline;
+  font-size: 13px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.btn-big { font-size: 16px; padding: 14px 28px; }
+
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.error-msg {
+  color: var(--rs-red);
+  font-size: 13px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* STAGE PROGRESS */
+.stage-bar { display: flex; gap: 6px; margin-bottom: 22px; }
+.stage-bar .pip {
+  flex: 1;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+}
+.stage-bar .pip.done { background: var(--rs-navy); }
+.stage-bar .pip.active { background: var(--rs-red); }
+
+/* SCALE PILLS */
+.scale-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.scale-pills {
+  display: flex;
+  gap: 4px;
+  background: var(--pill-bg);
+  padding: 4px;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.scale-pill {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  min-width: 38px;
+  transition: background 0.12s, color 0.12s;
+}
+.scale-pill:hover { background: rgba(0,0,0,0.04); }
+.scale-pill.selected {
+  background: var(--rs-navy);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+.scale-meta { font-size: 12px; color: var(--ink-mute); min-width: 70px; }
+
+/* FOCUS ROWS */
+.focus-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.focus-row:last-of-type { border-bottom: none; }
+.focus-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+.focus-name .focus-hint { display: block; font-size: 12px; color: var(--ink-mute); font-weight: 400; margin-top: 2px; }
+@media (max-width: 600px) { .focus-row { grid-template-columns: 1fr; gap: 8px; } }
+
+/* PILLAR AVG CHIP DURING FORM */
+.pillar-avg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  background: var(--rs-navy);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.pillar-avg-chip b { font-size: 16px; font-weight: 700; }
+.pillar-avg-chip .label { font-size: 11px; letter-spacing: 1px; opacity: 0.7; text-transform: uppercase; }
+
+.legend {
+  background: var(--line-soft);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.legend b { color: var(--ink); }
+.legend-row { display: grid; grid-template-columns: 50px 1fr; gap: 8px; padding: 3px 0; }
+.legend-row b { font-weight: 700; color: var(--rs-navy); }
+
+.personal-block { padding: 18px 0; border-bottom: 1px solid var(--line-soft); }
+.personal-block:last-of-type { border-bottom: none; padding-bottom: 0; }
+.personal-block h3 { margin-bottom: 10px; }
+.personal-block .examples { font-size: 12px; color: var(--ink-mute); margin-bottom: 10px; line-height: 1.5; }
+
+/* DASHBOARD CONTENT */
+.detail-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 12px; flex-wrap: wrap; gap: 12px;
+}
+.detail-head .who { display: flex; align-items: center; gap: 14px; }
+.detail-head .avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--rs-navy);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.kpi .v { font-size: 22px; font-weight: 700; color: var(--rs-navy); }
+.kpi .l { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+.two-col { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; }
+@media (max-width: 880px) { .two-col { grid-template-columns: 1fr; } }
+
+.status-thriving { color: var(--thriving); }
+.status-steady { color: var(--steady); }
+.status-surviving { color: var(--surviving); }
+.bg-thriving { background: var(--thriving); color: #fff; }
+.bg-steady { background: var(--steady); color: #fff; }
+.bg-surviving { background: var(--surviving); color: #fff; }
+.status-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+.session-note {
+  background: #f0f5fc;
+  border: 1px solid #c8d8eb;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--rs-navy);
+}
+
+.pillar-block { padding: 6px 0 14px; margin-bottom: 14px; }
+.pillar-block:last-of-type { margin-bottom: 0; }
+.pillar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  background: var(--line-soft);
+  border-left: 4px solid var(--rs-navy);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 12px;
+}
+.pillar-head-text { flex: 1; min-width: 0; }
+.pillar-head h3 { font-size: 16px; font-weight: 700; color: var(--rs-navy); letter-spacing: -0.2px; }
+.pillar-head-sub { font-size: 10px; color: var(--ink-mute); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600; }
+.pillar-avg-wrap { text-align: right; flex-shrink: 0; }
+.pillar-avg { font-weight: 800; font-size: 24px; color: var(--rs-navy); line-height: 1; }
+.pillar-avg-label { font-size: 9px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 3px; }
+
+.focus-list { display: grid; gap: 4px; }
+.focus-line { display: grid; grid-template-columns: 1fr 60px; font-size: 13px; padding: 4px 0; color: var(--ink-soft); }
+.focus-line b { color: var(--ink); font-weight: 600; }
+.focus-line .score { text-align: right; font-weight: 700; }
+.focus-line.s-20, .focus-line.s-30 { color: var(--ink-mute); }
+.focus-line.s-40, .focus-line.s-50 { color: var(--ink); }
+.focus-line.s-60, .focus-line.s-70, .focus-line.s-80 { color: var(--rs-navy); font-weight: 600; }
+.focus-line.s-20 .score, .focus-line.s-30 .score { color: var(--ink-mute); }
+.focus-line.s-40 .score, .focus-line.s-50 .score { color: var(--ink); }
+.focus-line.s-60 .score, .focus-line.s-70 .score, .focus-line.s-80 .score { color: var(--rs-navy); }
+
+.comment {
+  background: var(--line-soft);
+  border-left: 3px solid var(--rs-navy);
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-style: italic;
+  line-height: 1.55;
+  margin-top: 10px;
+}
+.comment.none { background: transparent; border-left-color: var(--line); color: var(--ink-mute); }
+
+.spider-wrap { display: flex; justify-content: center; padding: 8px 0; }
+.spider-wrap svg { max-width: 100%; height: auto; }
+
+/* HISTORY LIST */
+.history-item {
+  display: grid;
+  grid-template-columns: 70px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s;
+}
+.history-item:hover { background: var(--pill-bg); }
+.history-item:last-of-type { border-bottom: none; }
+.history-item.active {
+  background: var(--line-soft);
+  border-left: 3px solid var(--rs-red);
+  padding-left: 11px;
+}
+.history-item .date-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rs-navy);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.history-item .label { font-size: 13px; color: var(--ink); }
+.history-item .scores { display: flex; gap: 12px; font-size: 12px; color: var(--ink-soft); }
+.history-item .scores b { color: var(--ink); }
+
+/* AUTOSAVE */
+.autosave {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: var(--rs-navy);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lift);
+}
+.autosave.show { opacity: 0.95; }
+
+/* CONFIRM SCREEN */
+.confirm-state { text-align: center; padding: 20px 0; }
+.confirm-state .check {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: #2e7d32;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 16px;
+}
+
+/* SUMMARY REVIEW */
+.summary-section { margin-bottom: 16px; }
+.summary-section h4 {
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--rs-red);
+  margin: 0 0 8px;
+}
+.summary-row {
+  display: grid;
+  grid-template-columns: 1fr 60px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line-soft);
+}
+.summary-row b { color: var(--ink); font-weight: 600; }
+.summary-row .score { text-align: right; font-weight: 700; color: var(--rs-navy); }
+.summary-row.indent { padding-left: 12px; color: var(--ink-mute); }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+.empty-state .icon {
+  font-size: 48px;
+  color: var(--rs-navy);
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+.empty-state h2 { font-size: 22px; margin-bottom: 8px; }
+
+/* PRINT */
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff !important; }
+  .topbar, .topbar-actions, .print-hide, .autosave, .nav-row { display: none !important; }
+  .shell { padding: 0 !important; max-width: 100% !important; }
+  .card { box-shadow: none !important; border: 1px solid #d0d4d9 !important; margin-bottom: 10px !important; padding: 14px !important; break-inside: avoid; page-break-inside: avoid; }
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 15px !important; }
+  h3 { font-size: 13px !important; }
+  .two-col { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .pillar-block { break-inside: avoid; page-break-inside: avoid; padding: 10px 0 !important; }
+  .spider-wrap svg { max-width: 240px !important; }
+  .history-item { cursor: default !important; }
+  a, a:link, a:visited { color: inherit !important; text-decoration: none !important; }
+  a[href]::after { content: '' !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="crest-wrap" id="brand-crest">
+      <!-- Inline SVG crest — small, scalable, Red Sox-coded without lifting the actual mark -->
+      <svg width="38" height="38" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-label="Red Sox crest">
+        <!-- Baseball ball -->
+        <circle cx="20" cy="20" r="18" fill="#ffffff" stroke="#0C2340" stroke-width="1.5"/>
+        <!-- Stitching arcs -->
+        <path d="M 7 13 Q 20 20 33 13" fill="none" stroke="#BD3039" stroke-width="1.5" stroke-dasharray="2 2"/>
+        <path d="M 7 27 Q 20 20 33 27" fill="none" stroke="#BD3039" stroke-width="1.5" stroke-dasharray="2 2"/>
+        <!-- B wordmark -->
+        <text x="20" y="26" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#BD3039" text-anchor="middle">B</text>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <b id="brand-name">Red Sox</b><span class="sep">·</span>
+      <span id="brand-dept">S&amp;C · Player Development</span><span class="sep">·</span>
+      <span>My checkpoint</span>
+    </div>
+  </div>
+  <div class="topbar-actions" id="topbar-actions"></div>
+</header>
+
+<div class="shell" id="root"></div>
+<div class="autosave" id="autosave">Saved</div>
+
+<script>
+//==============================================================================
+// CONFIG
+//==============================================================================
+const BRAND = {
+  org: 'Boston Red Sox',
+  orgShort: 'Red Sox',
+  orgLabel: 'RED SOX',
+  dept: 'S&C · Player Development',
+  deptShort: 'S&C',
+  app: 'Coach Performance & Development Platform',
+  appShort: 'Coach development',
+  primary: '#BD3039',
+  primaryDark: '#8C2128',
+  secondary: '#0C2340',
+  secondaryLight: '#1A3357',
+  emailDomain: 'redsox.com',
+  emailSender: 'ecoleman@redsox.com',
+};
+
+const WEBHOOK_URL = ''; // optional Google Sheets webhook
+const CHECKPOINT_LABEL_DEFAULT = 'Early-season checkpoint';
+
+//==============================================================================
+// TAXONOMY (matches the rest of the suite)
+//==============================================================================
+const PROFESSIONAL_TAXONOMY = [
+  { id: 'sc-knowledge', name: 'S&C knowledge & application',
+    intro: 'Your technical knowledge and how you apply it in programming and physical preparation.',
+    focuses: [
+      { id: 'warmups', name: 'Warm-ups & prep', hint: 'Movement prep, activation, pre-session readiness.' },
+      { id: 'strength', name: 'Strength', hint: 'Strength training prescription, exercise selection, intensity.' },
+      { id: 'power', name: 'Power', hint: 'Power development, force-velocity, plyometrics.' },
+      { id: 'speed', name: 'Speed', hint: 'Acceleration, max velocity, change of direction.' },
+      { id: 'fitness', name: 'Fitness', hint: 'Conditioning, energy systems, work capacity.' },
+      { id: 'assessment', name: 'Assessment skills', hint: 'Testing, movement screens, interpreting data.' },
+      { id: 'program-design', name: 'Program design', hint: 'Periodization, individualization, integration with PD.' }
+    ]
+  },
+  { id: 'coaching', name: 'Coaching effectiveness',
+    intro: 'How you deliver, manage your environment, and adapt to the sport demands.',
+    focuses: [
+      { id: 'instruction', name: 'Coaching & instruction', hint: 'Cueing, demonstration, athlete engagement, session flow.' },
+      { id: 'tech-data', name: 'Tech & data', hint: 'Force plates, GPS, VBT, software competence.' },
+      { id: 'schedule', name: 'Schedule management', hint: 'Session planning, time on task, daily/weekly flow.' },
+      { id: 'sport-spec', name: 'Sport-specific', hint: 'Baseball context, position needs, integration with skill staff.' }
+    ]
+  },
+  { id: 'universal', name: 'Universal competencies',
+    intro: 'Cross-cutting professional habits — evidence, problem solving, presence on staff.',
+    focuses: [
+      { id: 'evidence', name: 'Evidence-based', hint: 'Use of research, willingness to update views.' },
+      { id: 'innovation', name: 'Innovation & risk', hint: 'Trying new methods responsibly, measuring impact.' },
+      { id: 'problem', name: 'Problem solver', hint: 'Diagnosing issues, generating solutions under constraints.' },
+      { id: 'modelling', name: 'Modelling & growth', hint: 'Setting the standard, self-development, humility.' },
+      { id: 'team-comm', name: 'Team communication', hint: 'Cross-department collaboration, reporting, written + verbal.' }
+    ]
+  }
+];
+
+const PERSONAL_MAIN = [
+  { id: 'wellbeing', name: 'Wellbeing',
+    examples: 'Sleep, nutrition, exercise, injury/pain, mental wellbeing, social and financial wellbeing.' },
+  { id: 'resilience', name: 'Resilience',
+    examples: 'Sense of self and purpose, personal challenge, social support, mindset, emotional regulation, adaptability, recoverability.' },
+  { id: 'cognitive', name: 'Cognitive & interpersonal',
+    examples: 'Critical thinking, creativity, learning, leadership and teamwork, emotional intelligence, communication.' },
+  { id: 'life-mgmt', name: 'Life management',
+    examples: 'Daily routine, daily environment, organization, life admin.' }
+];
+
+const PRO_SCALE = [20, 30, 40, 50, 60, 70, 80];
+const PRO_SCALE_DESCRIPTIONS = {
+  20: 'Developing — clear growth area', 30: 'Approaching standard', 40: 'Below pro baseline',
+  50: 'Solid pro standard', 60: 'Above standard', 70: 'Approaching elite', 80: 'Elite / mastery'
+};
+const PERSONAL_SCALE = [1, 2, 3, 4, 5];
+const PERSONAL_SCALE_DESCRIPTIONS = {
+  1: 'Struggling significantly', 2: 'Some difficulty', 3: 'OK / managing', 4: 'Good', 5: 'Thriving'
+};
+
+//==============================================================================
+// STATE
+//==============================================================================
+const STORAGE_KEY_IDENTITY = 'coach_portal_v1_identity';
+const STORAGE_KEY_HISTORY  = 'coach_portal_v1_history';
+const STORAGE_KEY_DRAFT    = 'coach_portal_v1_draft';
+
+const state = {
+  view: 'loading',   // 'setup' | 'dashboard' | 'checkin' | 'confirm'
+  identity: null,    // { firstName, lastName, name, email, role, configuredAt }
+  history: [],       // [submission, submission, ...]
+  selectedHistoryId: null, // which submission to display on dashboard (default: latest)
+
+  // Check-in flow state
+  checkinStage: 0,
+  pro: {},
+  proComments: {},
+  personal: {},
+  personalComments: {},
+  finalComment: '',
+  checkinLabel: '',
+  seasonNote: '',
+  checkinDate: '',
+
+  // Submit state
+  lastSubmitPayload: null,
+  lastDeliveredVia: null,
+  lastResponseId: null,
+};
+if (typeof window !== 'undefined') window.state = state;
+
+// Stages of the check-in flow (welcome → identify-confirm → pro pillars → personal → review → done)
+const CHECKIN_STAGES = [
+  'welcome',
+  ...PROFESSIONAL_TAXONOMY.map(p => `pro:${p.id}`),
+  'personal',
+  'review'
+];
+
+//==============================================================================
+// PERSISTENCE
+//==============================================================================
+function saveIdentity() {
+  try { localStorage.setItem(STORAGE_KEY_IDENTITY, JSON.stringify(state.identity)); } catch(e) {}
+}
+function loadIdentity() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_IDENTITY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+function saveHistory() {
+  try { localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(state.history)); } catch(e) {}
+}
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch(e) { return []; }
+}
+function saveDraft() {
+  try {
+    localStorage.setItem(STORAGE_KEY_DRAFT, JSON.stringify({
+      checkinStage: state.checkinStage,
+      pro: state.pro, proComments: state.proComments,
+      personal: state.personal, personalComments: state.personalComments,
+      finalComment: state.finalComment, checkinLabel: state.checkinLabel,
+      seasonNote: state.seasonNote, checkinDate: state.checkinDate
+    }));
+    showAutosave();
+  } catch(e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DRAFT);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+function clearDraft() {
+  try { localStorage.removeItem(STORAGE_KEY_DRAFT); } catch(e) {}
+  state.checkinStage = 0;
+  state.pro = {}; state.proComments = {};
+  state.personal = {}; state.personalComments = {};
+  state.finalComment = ''; state.seasonNote = '';
+}
+
+let autosaveTimer = null;
+function showAutosave() {
+  const el = document.getElementById('autosave');
+  if (!el) return;
+  el.classList.add('show');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => el.classList.remove('show'), 1200);
+}
+
+//==============================================================================
+// HELPERS
+//==============================================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function initials(name) {
+  if (!name) return '?';
+  return name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+function pillarById(id) { return PROFESSIONAL_TAXONOMY.find(p => p.id === id); }
+function focusById(id) {
+  for (const p of PROFESSIONAL_TAXONOMY) {
+    const f = p.focuses.find(x => x.id === id);
+    if (f) return { focus: f, pillar: p };
+  }
+  return null;
+}
+function pillarAverage(pillarId) {
+  const p = pillarById(pillarId);
+  const scores = p.focuses.map(f => state.pro[f.id]).filter(v => typeof v === 'number');
+  if (!scores.length) return null;
+  return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+}
+function overallProAverage() {
+  const scores = Object.values(state.pro).filter(v => typeof v === 'number');
+  if (!scores.length) return null;
+  return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+}
+function overallPersonalAverage() {
+  const scores = Object.values(state.personal).filter(v => typeof v === 'number');
+  if (!scores.length) return null;
+  return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+}
+function statusFromPersonalAvg(avg) {
+  if (avg == null) return 'unknown';
+  if (avg >= 4.0) return 'thriving';
+  if (avg >= 3.0) return 'steady';
+  return 'surviving';
+}
+
+function applyBrand() {
+  document.title = `${BRAND.orgShort} ${BRAND.deptShort} — My checkpoint`;
+  document.getElementById('brand-name').textContent = BRAND.orgShort;
+  document.getElementById('brand-dept').textContent = BRAND.dept;
+}
+
+//==============================================================================
+// SPIDER CHART (configurable; matches dashboard implementation)
+//==============================================================================
+function wrapLabel(text, maxLen) {
+  const CONNECTIVES = new Set(['&', 'and', '/', '·']);
+  const words = String(text).split(/\s+/);
+  const lines = [];
+  let cur = '';
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const cand = cur ? cur + ' ' + w : w;
+    const isC = CONNECTIVES.has(w);
+    if (cand.length <= maxLen || (isC && cand.length <= maxLen + 2)) cur = cand;
+    else { if (cur) lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function spider(items, opts = {}) {
+  const size = opts.size || 240;
+  const labelPad = opts.labelPad || 80;
+  const maxValue = opts.maxValue || 80;
+  const ringValues = opts.ringValues || [20, 40, 60, 80];
+  const wrapAt = opts.wrapAt || 14;
+  const fontSize = opts.fontSize || 11;
+  const lineHeight = fontSize + 2;
+  const W = size + labelPad * 2;
+  const H = size + labelPad * 2;
+  const cx = W / 2, cy = H / 2;
+  const R = size * 0.40;
+  const n = items.length;
+  const angle = i => -Math.PI / 2 + (i * 2 * Math.PI / n);
+
+  const rings = ringValues.map(level => {
+    const r = R * (level / maxValue);
+    const pts = items.map((_, i) => { const a = angle(i); return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`; }).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="#e5e7eb" stroke-width="1" />`;
+  }).join('');
+
+  const axes = items.map((p, i) => {
+    const a = angle(i);
+    const cosA = Math.cos(a), sinA = Math.sin(a);
+    let anchor;
+    if (Math.abs(cosA) < 0.15) anchor = 'middle';
+    else if (cosA > 0) anchor = 'start';
+    else anchor = 'end';
+    const labelDist = R + 18;
+    const tx = cx + labelDist * cosA;
+    const ty = cy + labelDist * sinA;
+    const lines = wrapLabel(p.name, wrapAt);
+    const blockTop = ty - ((lines.length - 1) * lineHeight) / 2;
+    const verticalNudge = sinA < -0.3 ? -lineHeight * 0.4 : sinA > 0.3 ? lineHeight * 0.4 : 0;
+    const startY = blockTop + verticalNudge;
+    const tspans = lines.map((line, li) => `<tspan x="${tx}" dy="${li === 0 ? 0 : lineHeight}">${escapeHtml(line)}</tspan>`).join('');
+    return `
+      <line x1="${cx}" y1="${cy}" x2="${cx + R * cosA}" y2="${cy + R * sinA}" stroke="#e5e7eb" stroke-width="1" />
+      <text x="${tx}" y="${startY}" font-size="${fontSize}" fill="#1a1a1a" text-anchor="${anchor}" dominant-baseline="middle" font-weight="500">${tspans}</text>
+    `;
+  }).join('');
+
+  const dataPts = items.map((p, i) => {
+    const a = angle(i);
+    const v = (p.value || 0) / maxValue;
+    const r = R * Math.max(0, Math.min(1, v));
+    return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+  }).join(' ');
+
+  const dots = items.map((p, i) => {
+    const a = angle(i);
+    const v = (p.value || 0) / maxValue;
+    const r = R * v;
+    return `<circle cx="${cx + r * Math.cos(a)}" cy="${cy + r * Math.sin(a)}" r="4" fill="${BRAND.primary}" stroke="#fff" stroke-width="1.5" />`;
+  }).join('');
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" style="max-width: ${W}px;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Spider plot">
+      ${rings}${axes}
+      <polygon points="${dataPts}" fill="${BRAND.primary}33" stroke="${BRAND.primary}" stroke-width="2" />
+      ${dots}
+    </svg>
+  `;
+}
+
+//==============================================================================
+// SCALE WIDGETS
+//==============================================================================
+function renderProScale(focusId, current) {
+  const desc = current != null ? PRO_SCALE_DESCRIPTIONS[current] : 'Tap to score';
+  return `
+    <div class="scale-row" data-focus="${focusId}">
+      <div class="scale-pills" role="radiogroup" aria-label="Score for ${focusId}">
+        ${PRO_SCALE.map(v => `
+          <button type="button" class="scale-pill ${current === v ? 'selected' : ''}" data-val="${v}" onclick="setPro('${focusId}', ${v})" aria-checked="${current === v}">${v}</button>
+        `).join('')}
+      </div>
+      <div class="scale-meta" id="meta-${focusId}">${escapeHtml(desc)}</div>
+    </div>
+  `;
+}
+function renderPersonalScale(catId, current) {
+  const desc = current != null ? PERSONAL_SCALE_DESCRIPTIONS[current] : 'Tap to score';
+  return `
+    <div class="scale-row" data-cat="${catId}">
+      <div class="scale-pills" role="radiogroup" aria-label="Score for ${catId}">
+        ${PERSONAL_SCALE.map(v => `
+          <button type="button" class="scale-pill ${current === v ? 'selected' : ''}" data-val="${v}" onclick="setPersonal('${catId}', ${v})" aria-checked="${current === v}">${v}</button>
+        `).join('')}
+      </div>
+      <div class="scale-meta" id="meta-personal-${catId}">${escapeHtml(desc)}</div>
+    </div>
+  `;
+}
+function setPro(focusId, val) {
+  state.pro[focusId] = val;
+  const info = focusById(focusId);
+  document.querySelectorAll(`.scale-row[data-focus="${focusId}"] .scale-pill`).forEach(p => {
+    p.classList.toggle('selected', Number(p.dataset.val) === val);
+  });
+  document.getElementById(`meta-${focusId}`).textContent = PRO_SCALE_DESCRIPTIONS[val];
+  const chip = document.getElementById(`avg-${info.pillar.id}`);
+  if (chip) chip.innerHTML = renderAvgChipInner(info.pillar.id);
+  saveDraft();
+}
+function setPersonal(catId, val) {
+  state.personal[catId] = val;
+  document.querySelectorAll(`.scale-row[data-cat="${catId}"] .scale-pill`).forEach(p => {
+    p.classList.toggle('selected', Number(p.dataset.val) === val);
+  });
+  document.getElementById(`meta-personal-${catId}`).textContent = PERSONAL_SCALE_DESCRIPTIONS[val];
+  saveDraft();
+}
+function renderAvgChipInner(pillarId) {
+  const avg = pillarAverage(pillarId);
+  const total = pillarById(pillarId).focuses.length;
+  const filled = pillarById(pillarId).focuses.filter(f => typeof state.pro[f.id] === 'number').length;
+  if (avg == null) return `<span class="label">Pillar average</span><span>—</span><span class="label">${filled}/${total} scored</span>`;
+  return `<span class="label">Pillar average</span><b>${avg}</b><span class="label">${filled}/${total} scored</span>`;
+}
+
+//==============================================================================
+// SETUP VIEW (first-time identity capture)
+//==============================================================================
+function renderSetup() {
+  const tmp = state._setupTmp || {};
+  return `
+    <div class="card">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · My checkpoint</div>
+      <h1>Welcome — let's set up your portal</h1>
+      <p>This is your personal checkpoint dashboard. Once set up, it lives in your browser on this device. Your check-ins, your reflections, your history of self-scores.</p>
+      <p class="muted">Your responses get emailed to Simon (the S&amp;C Coordinator) when you submit. You also keep a copy here for your own reference, and you can print a PDF any time.</p>
+
+      <div class="field" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px;">
+        <div>
+          <label for="setup-first">First name</label>
+          <input type="text" id="setup-first" value="${escapeHtml(tmp.firstName || '')}" oninput="setupChange('firstName', this.value)" />
+        </div>
+        <div>
+          <label for="setup-last">Last name</label>
+          <input type="text" id="setup-last" value="${escapeHtml(tmp.lastName || '')}" oninput="setupChange('lastName', this.value)" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="setup-email">Email</label>
+        <input type="text" id="setup-email" value="${escapeHtml(tmp.email || '')}" oninput="setupChange('email', this.value.trim())" placeholder="you@${escapeHtml(BRAND.emailDomain)}" />
+        <div class="hint">So Simon can identify your responses and follow up.</div>
+      </div>
+
+      <div class="field">
+        <label for="setup-role">Role</label>
+        <select id="setup-role" onchange="setupChange('role', this.value)">
+          <option value="">Select role…</option>
+          <option value="S&C Coach" ${tmp.role === 'S&C Coach' ? 'selected' : ''}>S&amp;C Coach</option>
+          <option value="Assistant Coordinator" ${tmp.role === 'Assistant Coordinator' ? 'selected' : ''}>Assistant Coordinator</option>
+          <option value="Coordinator" ${tmp.role === 'Coordinator' ? 'selected' : ''}>Coordinator</option>
+          <option value="Director" ${tmp.role === 'Director' ? 'selected' : ''}>Director</option>
+          <option value="Other" ${tmp.role === 'Other' ? 'selected' : ''}>Other</option>
+        </select>
+      </div>
+
+      <div class="nav-row">
+        <span class="muted" style="font-size: 12px;">Stored only on this device.</span>
+        <button class="btn btn-primary" onclick="completeSetup()">Save &amp; continue</button>
+      </div>
+      <div id="setup-err" class="error-msg" style="display: none;"></div>
+    </div>
+  `;
+}
+function setupChange(field, val) {
+  state._setupTmp = state._setupTmp || {};
+  state._setupTmp[field] = val;
+}
+function completeSetup() {
+  const t = state._setupTmp || {};
+  const err = document.getElementById('setup-err');
+  err.style.display = 'none';
+  if (!t.firstName || !t.lastName) { err.textContent = 'Please enter your first and last name.'; err.style.display = 'block'; return; }
+  if (!t.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t.email)) { err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return; }
+  if (!t.role) { err.textContent = 'Please select your role.'; err.style.display = 'block'; return; }
+
+  state.identity = {
+    firstName: t.firstName.trim(),
+    lastName: t.lastName.trim(),
+    name: (t.firstName + ' ' + t.lastName).trim(),
+    email: t.email.trim(),
+    role: t.role,
+    configuredAt: new Date().toISOString()
+  };
+  saveIdentity();
+  state._setupTmp = null;
+  goView('dashboard');
+}
+
+//==============================================================================
+// DASHBOARD VIEW (own coach dashboard with history)
+//==============================================================================
+function renderDashboard() {
+  const id = state.identity;
+  if (!state.history.length) {
+    return renderDashboardEmpty();
+  }
+  // Pick which submission to show (default = most recent)
+  const sorted = [...state.history].sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
+  const selected = state.selectedHistoryId
+    ? sorted.find(s => s.responseId === state.selectedHistoryId) || sorted[0]
+    : sorted[0];
+  const isLatest = selected.responseId === sorted[0].responseId;
+
+  const status = statusFromPersonalAvg(selected.personal?.overallAverage);
+  const pillarSpider = PROFESSIONAL_TAXONOMY.map(p => ({ name: p.name, value: selected.professional?.pillarAverages?.[p.id] || 0 }));
+  const personalSpider = PERSONAL_MAIN.map(c => ({ name: c.name, value: selected.personal?.scores?.[c.id] || 0 }));
+
+  return `
+    <div class="card">
+      <div class="detail-head">
+        <div class="who">
+          <div class="avatar bg-${status}">${initials(id.name)}</div>
+          <div>
+            <div class="eyebrow">${escapeHtml(selected.checkpoint || 'Checkpoint')}</div>
+            <h1>${escapeHtml(id.name)}</h1>
+            <div class="muted">${escapeHtml(id.role)} &middot; ${escapeHtml((selected.submittedAt || '').slice(0, 10))}${!isLatest ? ' &middot; <i>archive view</i>' : ''}</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-direction: column; align-items: flex-end;">
+          <span class="status-chip bg-${status}">${status}</span>
+          <span class="muted" style="font-size: 11px;">${state.history.length} ${state.history.length === 1 ? 'check-in' : 'check-ins'} on file</span>
+        </div>
+      </div>
+
+      ${selected.seasonNote ? `<div class="session-note"><b>Season context:</b> ${escapeHtml(selected.seasonNote)}</div>` : ''}
+
+      <div class="kpi-row" style="margin-top: 14px;">
+        <div class="kpi"><div class="v">${selected.personal?.overallAverage ?? '—'}<span style="font-size:14px; color:var(--ink-mute);"> / 5</span></div><div class="l">Personal overall</div></div>
+        <div class="kpi"><div class="v">${selected.professional?.overallAverage ?? '—'}</div><div class="l">Pro overall</div></div>
+        ${PROFESSIONAL_TAXONOMY.map(p => `
+          <div class="kpi"><div class="v">${selected.professional?.pillarAverages?.[p.id] ?? '—'}</div><div class="l">${escapeHtml(p.name.split('&')[0].trim().split(' ').slice(0, 2).join(' '))}</div></div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Professional</h2>
+        ${PROFESSIONAL_TAXONOMY.map(p => `
+          <div class="pillar-block">
+            <div class="pillar-head">
+              <div class="pillar-head-text">
+                <h3>${escapeHtml(p.name)}</h3>
+                <div class="pillar-head-sub">Average of ${p.focuses.length} focus area${p.focuses.length === 1 ? '' : 's'} below</div>
+              </div>
+              <div class="pillar-avg-wrap">
+                <div class="pillar-avg">${selected.professional?.pillarAverages?.[p.id] ?? '—'}</div>
+                <div class="pillar-avg-label">Avg / 80</div>
+              </div>
+            </div>
+            <div class="focus-list">
+              ${p.focuses.map(f => {
+                const v = selected.professional?.scores?.[f.id];
+                return `<div class="focus-line s-${v}"><b>${escapeHtml(f.name)}</b><span class="score">${v ?? '—'}</span></div>`;
+              }).join('')}
+            </div>
+            ${selected.professional?.comments?.[p.id]
+              ? `<div class="comment">&ldquo;${escapeHtml(selected.professional.comments[p.id])}&rdquo;</div>`
+              : `<div class="comment none">No reflection added.</div>`}
+          </div>
+        `).join('')}
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Pillar shape</h2>
+          <div class="spider-wrap">${spider(pillarSpider, { size: 240, labelPad: 90, wrapAt: 14 })}</div>
+          <div class="muted" style="text-align: center; font-size: 12px;">Outer ring = 80 &middot; Each ring = 20 points</div>
+        </div>
+
+        <div class="card">
+          <h2>Personal shape</h2>
+          <div class="spider-wrap">${spider(personalSpider, { size: 240, labelPad: 90, wrapAt: 14, maxValue: 5, ringValues: [1, 2, 3, 4, 5] })}</div>
+          <div class="muted" style="text-align: center; font-size: 12px;">Outer ring = 5 &middot; Each ring = 1 point</div>
+        </div>
+
+        <div class="card">
+          <h2>Personal &mdash; detail</h2>
+          ${PERSONAL_MAIN.map(c => {
+            const v = selected.personal?.scores?.[c.id];
+            const ps = v >= 4 ? 'thriving' : (v >= 3 ? 'steady' : 'surviving');
+            return `
+              <div class="pillar-block">
+                <div class="pillar-head">
+                  <div class="pillar-head-text"><h3>${escapeHtml(c.name)}</h3></div>
+                  <div class="pillar-avg-wrap">
+                    <div class="pillar-avg status-${ps}">${v ?? '—'}<span style="font-size: 12px; color: var(--ink-mute); font-weight: 400;"> / 5</span></div>
+                    <div class="pillar-avg-label">Self-score</div>
+                  </div>
+                </div>
+                ${selected.personal?.comments?.[c.id]
+                  ? `<div class="comment" style="font-size: 12px;">&ldquo;${escapeHtml(selected.personal.comments[c.id])}&rdquo;</div>`
+                  : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        ${selected.finalComment ? `
+          <div class="card">
+            <h2>Final comment</h2>
+            <div class="comment">&ldquo;${escapeHtml(selected.finalComment)}&rdquo;</div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+
+    ${state.history.length > 1 ? `
+      <div class="card print-hide">
+        <h2>My check-in history</h2>
+        <p class="muted">Tap any past check-in to view it.</p>
+        ${sorted.map(s => {
+          const st = statusFromPersonalAvg(s.personal?.overallAverage);
+          const isThis = s.responseId === selected.responseId;
+          return `
+            <div class="history-item ${isThis ? 'active' : ''}" onclick="selectHistory('${escapeHtml(s.responseId)}')">
+              <div class="date-tag">${escapeHtml((s.submittedAt || '').slice(0, 10))}</div>
+              <div>
+                <div class="label">${escapeHtml(s.checkpoint || 'Checkpoint')}${isThis ? ' &mdash; <i>showing now</i>' : ''}</div>
+                <div class="muted" style="font-size: 11px; margin-top: 2px;">${escapeHtml((s.submittedAt || '').slice(11, 16))} &middot; ID ${escapeHtml(s.responseId)}</div>
+              </div>
+              <div class="scores">
+                <div>Personal <b class="status-${st}">${s.personal?.overallAverage ?? '—'}/5</b></div>
+                <div>Pro <b>${s.professional?.overallAverage ?? '—'}</b></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderDashboardEmpty() {
+  const id = state.identity;
+  return `
+    <div class="card">
+      <div class="empty-state">
+        <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · My checkpoint</div>
+        <h1>Welcome, ${escapeHtml(id.name.split(' ')[0])}.</h1>
+        <p style="max-width: 540px; margin: 0 auto 16px;">Your portal is set up. To populate your dashboard, complete your first check-in. It takes 10&ndash;12 minutes and walks through the professional pillars and the personal life areas. Honest scoring beats inflated scoring &mdash; 50 is solid pro standard, not a low number.</p>
+        <button class="btn btn-primary btn-big" onclick="startCheckin()">Start my first check-in</button>
+      </div>
+    </div>
+  `;
+}
+
+function selectHistory(responseId) {
+  state.selectedHistoryId = responseId;
+  render();
+}
+
+//==============================================================================
+// CHECK-IN FLOW (form pages)
+//==============================================================================
+function startCheckin() {
+  // Restore any draft if present
+  const draft = loadDraft();
+  if (draft && (Object.keys(draft.pro || {}).length || Object.keys(draft.personal || {}).length)) {
+    if (confirm('You have a check-in draft in progress. Pick up where you left off?')) {
+      state.checkinStage = draft.checkinStage || 0;
+      state.pro = draft.pro || {};
+      state.proComments = draft.proComments || {};
+      state.personal = draft.personal || {};
+      state.personalComments = draft.personalComments || {};
+      state.finalComment = draft.finalComment || '';
+      state.seasonNote = draft.seasonNote || '';
+      state.checkinLabel = draft.checkinLabel || CHECKPOINT_LABEL_DEFAULT;
+      state.checkinDate = draft.checkinDate || new Date().toISOString().slice(0, 10);
+    } else {
+      clearDraft();
+      state.checkinLabel = CHECKPOINT_LABEL_DEFAULT;
+      state.checkinDate = new Date().toISOString().slice(0, 10);
+    }
+  } else {
+    clearDraft();
+    state.checkinLabel = CHECKPOINT_LABEL_DEFAULT;
+    state.checkinDate = new Date().toISOString().slice(0, 10);
+  }
+  goView('checkin');
+}
+
+function renderCheckin() {
+  const stageKey = CHECKIN_STAGES[state.checkinStage];
+  let body = '';
+  if (stageKey === 'welcome') body = renderCheckinWelcome();
+  else if (stageKey.startsWith('pro:')) body = renderProPillar(stageKey.slice(4));
+  else if (stageKey === 'personal') body = renderPersonal();
+  else if (stageKey === 'review') body = renderReview();
+
+  return `
+    <div id="stage-bar" class="stage-bar"></div>
+    ${body}
+  `;
+}
+
+function renderCheckinStageBar() {
+  const numSteps = CHECKIN_STAGES.length - 1;
+  const currentStep = state.checkinStage === 0 ? 0 : state.checkinStage;
+  const pips = [];
+  for (let i = 1; i <= numSteps; i++) {
+    let cls = '';
+    if (i < currentStep) cls = 'done';
+    else if (i === currentStep) cls = 'active';
+    pips.push(`<div class="pip ${cls}"></div>`);
+  }
+  const el = document.getElementById('stage-bar');
+  if (el) el.innerHTML = pips.join('');
+}
+
+function renderCheckinWelcome() {
+  const isFirst = state.history.length === 0;
+  return `
+    <div class="card">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · ${isFirst ? 'Your first check-in' : 'New check-in'}</div>
+      <h1>${isFirst ? "Let's get your first check-in done" : "Let's run a new check-in"}</h1>
+      <p>This walks through three professional pillars (16 focus areas total), then a short personal check across four life areas. About 10&ndash;12 minutes. Your draft saves automatically.</p>
+      <p class="muted">Honest scoring beats inflated scoring. A 50 is solid pro standard &mdash; not a low number.</p>
+
+      <div class="field" style="margin-top: 20px;">
+        <label for="checkin-label">Checkpoint label</label>
+        <input type="text" id="checkin-label" value="${escapeHtml(state.checkinLabel || CHECKPOINT_LABEL_DEFAULT)}" oninput="state.checkinLabel = this.value; saveDraft();" />
+        <div class="hint">What to call this check-in (e.g. Early-season checkpoint, Monthly check-in May, Mid-season review).</div>
+      </div>
+
+      <div class="field">
+        <label for="checkin-date">Date</label>
+        <input type="text" id="checkin-date" value="${escapeHtml(state.checkinDate || new Date().toISOString().slice(0, 10))}" oninput="state.checkinDate = this.value; saveDraft();" />
+        <div class="hint">YYYY-MM-DD. Today: ${new Date().toISOString().slice(0, 10)}.</div>
+      </div>
+
+      <div class="field">
+        <label for="checkin-season">Where are we in your calendar? (optional)</label>
+        <textarea id="checkin-season" oninput="state.seasonNote = this.value; saveDraft();" placeholder="e.g. 4 weeks into spring training, end of off-season block, etc.">${escapeHtml(state.seasonNote)}</textarea>
+      </div>
+
+      <div class="legend" style="margin-top: 20px;">
+        <b style="display: block; margin-bottom: 8px;">The 20&ndash;80 scale</b>
+        ${PRO_SCALE.map(v => `<div class="legend-row"><b>${v}</b><span>${PRO_SCALE_DESCRIPTIONS[v]}</span></div>`).join('')}
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="exitCheckin()">Cancel</button>
+        <button class="btn btn-primary" onclick="goNextCheckin()">Begin scoring</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderProPillar(pillarId) {
+  const p = pillarById(pillarId);
+  const pillarIndex = PROFESSIONAL_TAXONOMY.findIndex(x => x.id === pillarId);
+  return `
+    <div class="card">
+      <div class="eyebrow">Pillar ${pillarIndex + 1} of 3</div>
+      <h1>${escapeHtml(p.name)}</h1>
+      <p>${escapeHtml(p.intro)}</p>
+      <p class="muted">Score each area on the 20&ndash;80 scale. 50 is solid pro standard.</p>
+      <div style="margin-top: 8px;">
+        ${p.focuses.map(f => `
+          <div class="focus-row">
+            <div class="focus-name">${escapeHtml(f.name)}<span class="focus-hint">${escapeHtml(f.hint)}</span></div>
+            ${renderProScale(f.id, state.pro[f.id])}
+          </div>
+        `).join('')}
+      </div>
+      <div class="pillar-avg-chip" id="avg-${p.id}">${renderAvgChipInner(p.id)}</div>
+
+      <div class="field" style="margin-top: 24px;">
+        <label for="pc-${p.id}">Reflection &mdash; ${escapeHtml(p.name)}</label>
+        <div class="hint">What's going well, current status, where progression or adjustment is needed.</div>
+        <textarea id="pc-${p.id}" oninput="state.proComments['${p.id}'] = this.value; saveDraft();" placeholder="Write a few sentences.">${escapeHtml(state.proComments[p.id] || '')}</textarea>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrevCheckin()">Back</button>
+        <button class="btn btn-primary" onclick="onPillarNext('${p.id}')">Continue</button>
+      </div>
+      <div id="pillar-err-${p.id}" class="error-msg" style="display: none;"></div>
+    </div>
+  `;
+}
+
+function onPillarNext(pillarId) {
+  const err = document.getElementById(`pillar-err-${pillarId}`);
+  err.style.display = 'none';
+  const p = pillarById(pillarId);
+  const missing = p.focuses.filter(f => typeof state.pro[f.id] !== 'number');
+  if (missing.length) {
+    err.textContent = `Please score every focus area before continuing (${missing.length} remaining).`;
+    err.style.display = 'block';
+    return;
+  }
+  goNextCheckin();
+}
+
+function renderPersonal() {
+  return `
+    <div class="card">
+      <div class="eyebrow">Personal check-in</div>
+      <h1>Personal checkpoint</h1>
+      <p>Abbreviated read on the four main life areas. Use the 1&ndash;5 scale &mdash; a quick gut read, not a detailed audit.</p>
+      <p class="muted">Add a sentence of context for each. This is what helps separate &ldquo;same score, very different situation.&rdquo;</p>
+
+      <div class="legend" style="margin-bottom: 24px;">
+        <b style="display: block; margin-bottom: 8px;">The 1&ndash;5 scale</b>
+        ${PERSONAL_SCALE.map(v => `<div class="legend-row"><b>${v}</b><span>${PERSONAL_SCALE_DESCRIPTIONS[v]}</span></div>`).join('')}
+      </div>
+
+      ${PERSONAL_MAIN.map(c => `
+        <div class="personal-block">
+          <h3>${escapeHtml(c.name)}</h3>
+          <div class="examples"><i>Includes:</i> ${escapeHtml(c.examples)}</div>
+          ${renderPersonalScale(c.id, state.personal[c.id])}
+          <div class="field" style="margin-top: 14px; margin-bottom: 0;">
+            <textarea id="pec-${c.id}" oninput="state.personalComments['${c.id}'] = this.value; saveDraft();" placeholder="A sentence or two on current status &mdash; what's going on here right now?">${escapeHtml(state.personalComments[c.id] || '')}</textarea>
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="field" style="margin-top: 28px;">
+        <label for="final-c">Anything else? (optional)</label>
+        <div class="hint">Anything not captured above &mdash; flags, asks, context Simon should know.</div>
+        <textarea id="final-c" oninput="state.finalComment = this.value; saveDraft();" placeholder="Open comment &mdash; leave blank if nothing else to add.">${escapeHtml(state.finalComment)}</textarea>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrevCheckin()">Back</button>
+        <button class="btn btn-primary" onclick="onPersonalNext()">Continue to review</button>
+      </div>
+      <div id="personal-err" class="error-msg" style="display: none;"></div>
+    </div>
+  `;
+}
+function onPersonalNext() {
+  const err = document.getElementById('personal-err');
+  err.style.display = 'none';
+  const missing = PERSONAL_MAIN.filter(c => typeof state.personal[c.id] !== 'number');
+  if (missing.length) {
+    err.textContent = `Please score every personal area (${missing.length} remaining).`;
+    err.style.display = 'block';
+    return;
+  }
+  goNextCheckin();
+}
+
+function renderReview() {
+  return `
+    <div class="card">
+      <div class="eyebrow">Review &amp; submit</div>
+      <h1>Review your check-in</h1>
+      <p>Quick read-back before you submit. Back to revise anything.</p>
+
+      <div class="summary-section">
+        <h4>Check-in</h4>
+        <div class="summary-row"><b>Label</b><span class="score">${escapeHtml(state.checkinLabel || CHECKPOINT_LABEL_DEFAULT)}</span></div>
+        <div class="summary-row"><b>Date</b><span class="score">${escapeHtml(state.checkinDate)}</span></div>
+      </div>
+
+      ${PROFESSIONAL_TAXONOMY.map(p => `
+        <div class="summary-section">
+          <h4>${escapeHtml(p.name)} &mdash; avg ${pillarAverage(p.id) ?? '—'}</h4>
+          ${p.focuses.map(f => `<div class="summary-row indent"><span>${escapeHtml(f.name)}</span><span class="score">${state.pro[f.id] ?? '—'}</span></div>`).join('')}
+          ${state.proComments[p.id] ? `<div class="muted" style="margin-top: 8px; padding: 8px 12px; background: var(--line-soft); border-radius: 6px; font-size: 13px; line-height: 1.55;"><i>&ldquo;${escapeHtml(state.proComments[p.id])}&rdquo;</i></div>` : '<div class="muted" style="margin-top: 8px; font-style: italic;">No reflection added.</div>'}
+        </div>
+      `).join('')}
+
+      <div class="summary-section">
+        <h4>Personal &mdash; avg ${overallPersonalAverage() ?? '—'} / 5</h4>
+        ${PERSONAL_MAIN.map(c => `
+          <div class="summary-row indent"><span>${escapeHtml(c.name)}</span><span class="score">${state.personal[c.id] ?? '—'}</span></div>
+          ${state.personalComments[c.id] ? `<div class="muted" style="margin: 4px 0 10px 12px; padding: 6px 10px; background: var(--line-soft); border-radius: 6px; font-size: 12px; line-height: 1.5;"><i>&ldquo;${escapeHtml(state.personalComments[c.id])}&rdquo;</i></div>` : ''}
+        `).join('')}
+      </div>
+
+      ${state.finalComment ? `
+        <div class="summary-section">
+          <h4>Final comment</h4>
+          <div class="muted" style="padding: 8px 12px; background: var(--line-soft); border-radius: 6px; font-size: 13px; line-height: 1.55;"><i>&ldquo;${escapeHtml(state.finalComment)}&rdquo;</i></div>
+        </div>
+      ` : ''}
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrevCheckin()">Back</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="onSubmitCheckin()">Submit check-in</button>
+      </div>
+      <div id="submit-status" class="muted" style="margin-top: 12px;"></div>
+    </div>
+  `;
+}
+
+function exitCheckin() {
+  if (!confirm('Exit this check-in? Your draft will be kept so you can resume later.')) return;
+  goView('dashboard');
+}
+
+function goNextCheckin() {
+  if (state.checkinStage < CHECKIN_STAGES.length - 1) {
+    state.checkinStage++;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    saveDraft();
+  }
+}
+function goPrevCheckin() {
+  if (state.checkinStage > 0) {
+    state.checkinStage--;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    saveDraft();
+  }
+}
+
+//==============================================================================
+// SUBMIT FLOW
+//==============================================================================
+function buildPayload() {
+  const id = state.identity;
+  const coachId = (id.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9._-]/g, '-') || 'unknown';
+  const responseId = `${coachId}-${Date.now().toString(36)}`;
+  const submittedAt = new Date().toISOString();
+
+  const proByFocus = {};
+  PROFESSIONAL_TAXONOMY.forEach(p => p.focuses.forEach(f => { proByFocus[f.id] = state.pro[f.id] ?? null; }));
+  const proPillarAvgs = {};
+  PROFESSIONAL_TAXONOMY.forEach(p => { proPillarAvgs[p.id] = pillarAverage(p.id); });
+  const personalScores = {};
+  PERSONAL_MAIN.forEach(c => { personalScores[c.id] = state.personal[c.id] ?? null; });
+
+  return {
+    schemaVersion: 1,
+    responseId, submittedAt,
+    checkpoint: state.checkinLabel || CHECKPOINT_LABEL_DEFAULT,
+    coachId,
+    name: id.name,
+    firstName: id.firstName,
+    lastName: id.lastName,
+    email: id.email,
+    role: id.role,
+    date: state.checkinDate,
+    seasonNote: state.seasonNote || '',
+    professional: {
+      scores: proByFocus,
+      pillarAverages: proPillarAvgs,
+      overallAverage: overallProAverage(),
+      comments: { ...state.proComments }
+    },
+    personal: {
+      scores: personalScores,
+      overallAverage: parseFloat(overallPersonalAverage()) || null,
+      comments: { ...state.personalComments }
+    },
+    finalComment: state.finalComment || '',
+    brand: BRAND.org
+  };
+}
+
+function downloadJson(payload, name) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
+}
+
+function buildEmailBody(payload) {
+  const id = state.identity;
+  const lines = [
+    `Hi Simon,`, ``,
+    `My check-in responses are attached as ${state.lastDownloadName || 'checkpoint.json'}.`, ``,
+    `Coach:   ${id.name}`,
+    `Role:    ${id.role}`,
+    `Email:   ${id.email}`,
+    `Date:    ${payload.date}`,
+    `Pro avg: ${payload.professional.overallAverage}`,
+    `Personal avg: ${payload.personal.overallAverage} / 5`,
+    `Response ID: ${payload.responseId}`, ``,
+    `(Plain-text backup of the JSON below, in case the attachment didn't come through.)`, ``,
+    `---BEGIN JSON---`,
+    JSON.stringify(payload, null, 2),
+    `---END JSON---`, ``,
+    `Thanks,`, `${id.name}`
+  ];
+  return lines.join('\n');
+}
+
+async function onSubmitCheckin() {
+  const btn = document.getElementById('submit-btn');
+  const status = document.getElementById('submit-status');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+  status.textContent = '';
+
+  const payload = buildPayload();
+  state.lastSubmitPayload = payload;
+  const safeId = (payload.coachId || 'unknown').replace(/[^a-z0-9]+/gi, '-');
+  const filename = `checkpoint_${safeId}_${payload.date}.json`;
+  state.lastDownloadName = filename;
+
+  let delivered = null;
+  if (WEBHOOK_URL && WEBHOOK_URL.startsWith('http')) {
+    try {
+      status.textContent = 'Sending to team sheet…';
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST', mode: 'cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload), redirect: 'follow'
+      });
+      if (res.ok) delivered = 'sheet';
+    } catch(e) { console.warn('Webhook failed', e); }
+  }
+
+  // Always download a local copy too
+  downloadJson(payload, filename);
+  if (!delivered) delivered = 'json';
+
+  // Save into history
+  state.history.push(payload);
+  saveHistory();
+  state.selectedHistoryId = payload.responseId;
+
+  // Clear draft
+  clearDraft();
+
+  state.lastDeliveredVia = delivered;
+  state.lastResponseId = payload.responseId;
+
+  goView('confirm');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderConfirm() {
+  const payload = state.lastSubmitPayload;
+  const id = state.identity;
+  return `
+    <div class="card confirm-state">
+      <div class="check">✓</div>
+      <h1>Check-in submitted</h1>
+      <p>Thanks, ${escapeHtml(id.name.split(' ')[0])}. Your responses have been saved to a file on your computer and stored in your portal history.</p>
+      <p>Now send a copy to Simon &mdash; he'll know to look out for it.</p>
+
+      <div style="margin: 24px 0;">
+        <button class="btn btn-primary btn-big" onclick="emailToSimon()">Email my responses to Simon</button>
+      </div>
+
+      <div style="margin-top: 18px; padding: 14px 16px; background: var(--line-soft); border-radius: 8px; text-align: left; font-size: 13px; color: var(--ink-soft);">
+        <b style="color: var(--ink);">If the email button doesn't work:</b>
+        <ol style="margin: 8px 0 0; padding-left: 22px; line-height: 1.7;">
+          <li>Open your email client and start a message to <a href="mailto:${escapeHtml(BRAND.emailSender)}">${escapeHtml(BRAND.emailSender)}</a></li>
+          <li>Subject: <i>Coach checkpoint &mdash; ${escapeHtml(id.name)}</i></li>
+          <li>Attach <code>${escapeHtml(state.lastDownloadName)}</code> from your Downloads folder, then send</li>
+        </ol>
+      </div>
+
+      <p class="muted" style="margin-top: 20px; font-size: 12px;">
+        Submitted ${escapeHtml((payload.submittedAt || '').slice(0, 19).replace('T', ' '))} &middot; Response ID <code>${escapeHtml(payload.responseId)}</code>
+      </p>
+
+      <div style="margin-top: 22px;">
+        <button class="btn btn-ghost" onclick="goView('dashboard')">View my updated dashboard</button>
+      </div>
+    </div>
+  `;
+}
+
+function emailToSimon() {
+  const payload = state.lastSubmitPayload;
+  if (!payload) return;
+  const id = state.identity;
+  const subject = `Coach checkpoint — ${id.name}`;
+  const body = buildEmailBody(payload);
+  const mailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if (mailto.length > 1900) {
+    const shortBody = body.split('---BEGIN JSON---')[0] + '\n(JSON file is attached.)\n\nThanks,\n' + id.name;
+    window.location.href = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
+  } else {
+    window.location.href = mailto;
+  }
+}
+
+//==============================================================================
+// PRINT
+//==============================================================================
+function printDashboard() {
+  if (state.view !== 'dashboard') goView('dashboard');
+  setTimeout(() => window.print(), 100);
+}
+
+//==============================================================================
+// VIEW MANAGEMENT
+//==============================================================================
+function renderTopbarActions() {
+  let html = '';
+  if (state.view === 'dashboard' && state.history.length) {
+    html = `
+      <button onclick="startCheckin()">Start new check-in</button>
+      <button class="primary" onclick="printDashboard()">Print to PDF</button>
+    `;
+  } else if (state.view === 'dashboard' && !state.history.length) {
+    html = `<button class="primary" onclick="startCheckin()">Start first check-in</button>`;
+  } else if (state.view === 'checkin') {
+    html = `<button onclick="exitCheckin()">Exit (draft saved)</button>`;
+  } else if (state.view === 'confirm') {
+    html = `<button class="primary" onclick="goView('dashboard')">View my dashboard</button>`;
+  }
+  document.getElementById('topbar-actions').innerHTML = html;
+}
+
+function goView(view) {
+  state.view = view;
+  if (view === 'checkin' && !state.identity) {
+    state.view = 'setup';
+  }
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function render() {
+  renderTopbarActions();
+  const root = document.getElementById('root');
+  if (state.view === 'setup')         root.innerHTML = renderSetup();
+  else if (state.view === 'dashboard') root.innerHTML = renderDashboard();
+  else if (state.view === 'checkin')   { root.innerHTML = renderCheckin(); renderCheckinStageBar(); }
+  else if (state.view === 'confirm')   root.innerHTML = renderConfirm();
+  else                                  root.innerHTML = '<div class="card"><p>Loading…</p></div>';
+}
+
+//==============================================================================
+// INIT
+//==============================================================================
+applyBrand();
+state.identity = loadIdentity();
+state.history = loadHistory();
+
+if (!state.identity) {
+  state.view = 'setup';
+} else {
+  state.view = 'dashboard';
+}
+render();
+</script>
+</body>
+</html>

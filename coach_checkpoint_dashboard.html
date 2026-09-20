@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
+    var here = location.pathname.split('/').pop() || 'index.html';
+    location.replace('gate.html?next=' + encodeURIComponent(here + location.search));
+  }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coach Checkpoint Dashboard</title>
+<style>
+:root {
+  --rs-red:        #BD3039;
+  --rs-red-dark:   #8C2128;
+  --rs-navy:       #0C2340;
+  --rs-navy-light: #1A3357;
+  --ink:           #1a1a1a;
+  --ink-soft:      #555;
+  --ink-mute:      #888;
+  --line:          #e5e7eb;
+  --line-soft:     #f1f3f5;
+  --bg:            #fafbfc;
+  --card:          #ffffff;
+  --pill-bg:       #f4f5f7;
+  --thriving:      #2e7d32;
+  --steady:        #ed8c00;
+  --surviving:     #BD3039;
+  --shadow:        0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ----- Topbar ----- */
+.topbar {
+  background: var(--rs-navy);
+  color: #fff;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--rs-red);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.crest {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--rs-red);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+.brand { font-size: 14px; opacity: 0.95; }
+.brand .sep { opacity: 0.5; margin: 0 6px; }
+.topbar-actions { display: flex; gap: 8px; }
+.topbar-actions button {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.20);
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.topbar-actions button:hover { background: rgba(255,255,255,0.20); }
+.topbar-actions button.primary { background: var(--rs-red); border-color: var(--rs-red-dark); }
+.topbar-actions button.primary:hover { background: var(--rs-red-dark); }
+
+/* ----- Layout ----- */
+.shell { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.page-header { margin-bottom: 20px; }
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: var(--rs-red);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+h1 { font-size: 24px; margin: 0 0 6px; color: var(--rs-navy); }
+h2 { font-size: 18px; margin: 0 0 12px; color: var(--rs-navy); }
+h3 { font-size: 14px; margin: 0 0 6px; color: var(--ink); font-weight: 600; }
+p { margin: 0 0 12px; color: var(--ink-soft); }
+.muted { color: var(--ink-mute); font-size: 13px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+/* ----- Empty state / dropzone ----- */
+.dropzone {
+  border: 2px dashed var(--line);
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--card);
+  transition: border-color 0.15s, background 0.15s;
+  margin-bottom: 16px;
+}
+.dropzone.dragover {
+  border-color: var(--rs-red);
+  background: #fff5f5;
+}
+.dropzone .icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: var(--rs-navy);
+}
+.dropzone h2 { margin-bottom: 6px; }
+.dropzone .file-input {
+  display: inline-block;
+  margin-top: 12px;
+}
+.dropzone .file-input button {
+  background: var(--rs-red);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.dropzone .file-input button:hover { background: var(--rs-red-dark); }
+.dropzone .sep-row {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.dropzone .sep-row button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.dropzone .sep-row button:hover { background: var(--pill-bg); }
+
+/* ----- Tabs ----- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--pill-bg);
+  padding: 4px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  width: fit-content;
+}
+.tab {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: transparent;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.tab:hover { background: rgba(255,255,255,0.6); }
+.tab.active { background: var(--rs-navy); color: #fff; }
+
+/* ----- Roster grid ----- */
+.roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.roster-tile {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.12s, transform 0.05s;
+}
+.roster-tile:hover { border-color: var(--rs-navy); }
+.roster-tile:active { transform: translateY(1px); }
+.roster-tile .name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rs-navy);
+  margin-bottom: 2px;
+}
+.roster-tile .role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-mute);
+  margin-bottom: 10px;
+}
+.roster-tile .scores {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.roster-tile .scores b { color: var(--ink); font-size: 14px; }
+
+/* ----- Status colors ----- */
+.status-thriving  { color: var(--thriving); }
+.status-steady    { color: var(--steady); }
+.status-surviving { color: var(--surviving); }
+.bg-thriving  { background: var(--thriving);  color: #fff; }
+.bg-steady    { background: var(--steady);    color: #fff; }
+.bg-surviving { background: var(--surviving); color: #fff; }
+.status-chip {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 9px;
+  border-radius: 100px;
+}
+
+/* ----- Coach detail ----- */
+.detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.detail-head .who {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.detail-head .avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--rs-navy);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 16px;
+}
+@media (max-width: 880px) { .two-col { grid-template-columns: 1fr; } }
+
+.pillar-block {
+  padding: 6px 0 14px;
+  margin-bottom: 14px;
+}
+.pillar-block:last-of-type { margin-bottom: 0; }
+
+/* Pillar header — clearly distinct from sub-areas: shaded card with navy accent,
+   bigger title, prominent average score with explanatory label. */
+.pillar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  background: var(--line-soft);
+  border-left: 4px solid var(--rs-navy);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 12px;
+}
+.pillar-head-text { flex: 1; min-width: 0; }
+.pillar-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rs-navy);
+  letter-spacing: -0.2px;
+}
+.pillar-head-sub {
+  font-size: 10px;
+  color: var(--ink-mute);
+  margin-top: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 600;
+}
+.pillar-avg-wrap {
+  text-align: right;
+  flex-shrink: 0;
+}
+.pillar-avg {
+  font-weight: 800;
+  font-size: 24px;
+  color: var(--rs-navy);
+  line-height: 1;
+}
+.pillar-avg-label {
+  font-size: 9px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  margin-top: 3px;
+}
+.focus-list { display: grid; gap: 4px; }
+.focus-line {
+  display: grid;
+  grid-template-columns: 1fr 60px;
+  font-size: 13px;
+  padding: 4px 0;
+  color: var(--ink-soft);
+}
+.focus-line b { color: var(--ink); font-weight: 600; }
+.focus-line .score {
+  text-align: right;
+  font-weight: 700;
+}
+/* Pro focus magnitude — neutral palette, NOT the wellbeing palette.
+   Low = muted (developmental area), mid = ink, high = navy (strong).
+   Intentionally avoids red/green so it doesn't read as a wellbeing signal. */
+.focus-line.s-20, .focus-line.s-30 { color: var(--ink-mute); }
+.focus-line.s-40, .focus-line.s-50 { color: var(--ink); }
+.focus-line.s-60, .focus-line.s-70, .focus-line.s-80 { color: var(--rs-navy); font-weight: 600; }
+.focus-line.s-20 .score, .focus-line.s-30 .score { color: var(--ink-mute); }
+.focus-line.s-40 .score, .focus-line.s-50 .score { color: var(--ink); }
+.focus-line.s-60 .score, .focus-line.s-70 .score, .focus-line.s-80 .score { color: var(--rs-navy); }
+
+.comment {
+  background: var(--line-soft);
+  border-left: 3px solid var(--rs-navy);
+  padding: 10px 12px;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-style: italic;
+  line-height: 1.55;
+  margin-top: 10px;
+}
+.comment.none { background: transparent; border-left-color: var(--line); color: var(--ink-mute); }
+
+/* ----- Spider chart ----- */
+.spider-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+.spider-wrap svg { max-width: 100%; height: auto; }
+
+/* ----- Group rollup ----- */
+.group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.group-pillar-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.group-bar-row {
+  display: grid;
+  grid-template-columns: 1.4fr auto 50px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+}
+.bar-track {
+  background: var(--line-soft);
+  border-radius: 4px;
+  height: 14px;
+  position: relative;
+  overflow: hidden;
+  min-width: 60px;
+}
+.bar-fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--rs-navy);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.bar-track .bar-fill.low { background: var(--surviving); }
+.bar-track .bar-fill.mid { background: var(--steady); }
+.bar-track .bar-fill.high { background: var(--thriving); }
+.group-bar-row .label { color: var(--ink); font-weight: 500; }
+.group-bar-row .num { font-weight: 700; color: var(--rs-navy); text-align: right; }
+
+/* ----- Submission list ----- */
+.submission-list {
+  list-style: none; padding: 0; margin: 12px 0 0;
+}
+.submission-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px;
+  gap: 12px;
+}
+.submission-list .meta { color: var(--ink-mute); font-size: 12px; }
+.submission-list button {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.submission-list button:hover { background: var(--pill-bg); color: var(--rs-red); }
+
+/* ----- CSV paste box ----- */
+.csv-paste-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(12,35,64,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.csv-paste-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 620px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+}
+.csv-paste-modal textarea {
+  width: 100%;
+  min-height: 200px;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  resize: vertical;
+}
+.csv-paste-modal .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+.csv-paste-modal button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+.btn-primary { background: var(--rs-red); color: #fff; }
+.btn-primary:hover { background: var(--rs-red-dark); }
+.btn-ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--line); }
+.btn-ghost:hover { background: var(--pill-bg); }
+
+.back-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+.back-btn:hover { background: var(--pill-bg); }
+
+.error-box {
+  background: #fff0f0;
+  border: 1px solid #f5c2c4;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 13px;
+  color: #6b1d1d;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kpi {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.kpi .v { font-size: 22px; font-weight: 700; color: var(--rs-navy); }
+.kpi .l { font-size: 11px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+.session-note {
+  background: #f0f5fc;
+  border: 1px solid #c8d8eb;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--rs-navy);
+}
+
+.snapshot-banner {
+  background: linear-gradient(90deg, var(--rs-navy), var(--rs-navy-light));
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+}
+.snapshot-banner .meta {
+  opacity: 0.85;
+  font-size: 12px;
+}
+.snapshot-banner b {
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Print styles — clean PDF output for the Print to PDF button.
+   Hides chrome (topbar, action buttons, admin lists), keeps the data,
+   forces brand colours through (browsers strip them by default in print).
+   --------------------------------------------------------------------------- */
+@media print {
+  @page { margin: 12mm; }
+
+  /* Make backgrounds + colours actually print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body { background: #fff !important; }
+
+  /* Hide page chrome */
+  .topbar, .topbar-actions,
+  .back-btn,
+  .csv-paste-overlay,
+  .dropzone,
+  .print-hide,
+  .submission-list li button {
+    display: none !important;
+  }
+
+  /* The "All submissions" admin list at the bottom of roster — not for PDF */
+  .admin-only { display: none !important; }
+
+  /* Tighten layout for paper */
+  .shell { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
+  .page-header { margin-bottom: 12px !important; }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #d0d4d9 !important;
+    margin-bottom: 10px !important;
+    padding: 14px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  h1 { font-size: 20px !important; margin-bottom: 4px !important; }
+  h2 { font-size: 15px !important; margin-bottom: 8px !important; }
+  h3 { font-size: 13px !important; }
+  .eyebrow { font-size: 10px !important; }
+
+  /* Roster grid — denser in landscape */
+  .roster {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+  .roster-tile {
+    padding: 10px !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .kpi-row { gap: 8px !important; }
+  .kpi { padding: 10px 12px !important; }
+  .kpi .v { font-size: 18px !important; }
+
+  /* Two-col layout on coach detail / group view */
+  .two-col { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .pillar-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 10px 0 !important;
+  }
+  .spider-wrap svg { max-width: 240px !important; }
+
+  /* Group view bars — keep visible widths */
+  .bar-track { background: #eef0f3 !important; }
+
+  /* Suppress URL annotation on links */
+  a, a:link, a:visited { color: inherit !important; text-decoration: none !important; }
+  a[href]::after { content: '' !important; }
+
+  /* Status chips need backgrounds preserved */
+  .status-chip { border: 1px solid rgba(0,0,0,0.05) !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="crest" id="brand-crest">RS</div>
+    <div class="brand">
+      <b id="brand-name">Red Sox</b><span class="sep">·</span>
+      <span id="brand-dept">S&amp;C · Player Development</span><span class="sep">·</span>
+      <span>Checkpoint dashboard</span>
+    </div>
+  </div>
+  <div class="topbar-actions" id="topbar-actions"></div>
+</header>
+
+<div class="shell" id="root"></div>
+
+<script>
+//==============================================================================
+// SNAPSHOT BUNDLE — these two consts are replaced at export time so the dashboard
+// can ship a frozen copy of the data to another viewer (e.g. Nick).
+// When EMBEDDED_SUBMISSIONS is non-empty, the dashboard enters "snapshot mode":
+// read-only, no admin chrome, banner shown at top.
+// Do not edit the markers — exportSnapshot() relies on the exact form.
+//==============================================================================
+const EMBEDDED_SUBMISSIONS = []; /* SNAPSHOT_DATA */
+const SNAPSHOT_META = null;      /* SNAPSHOT_META */
+
+//==============================================================================
+// BRAND
+//==============================================================================
+const BRAND = {
+  org: 'Boston Red Sox',
+  orgShort: 'Red Sox',
+  orgLabel: 'RED SOX',
+  dept: 'S&C · Player Development',
+  deptShort: 'S&C',
+  primary: '#BD3039', primaryDark: '#8C2128',
+  secondary: '#0C2340', secondaryLight: '#1A3357'
+};
+
+//==============================================================================
+// TAXONOMY — must match the form
+//==============================================================================
+const PROFESSIONAL_TAXONOMY = [
+  { id: 'sc-knowledge', name: 'S&C knowledge & application', focuses: [
+    { id: 'warmups',        name: 'Warm-ups & prep' },
+    { id: 'strength',       name: 'Strength' },
+    { id: 'power',          name: 'Power' },
+    { id: 'speed',          name: 'Speed' },
+    { id: 'fitness',        name: 'Fitness' },
+    { id: 'assessment',     name: 'Assessment skills' },
+    { id: 'program-design', name: 'Program design' }
+  ]},
+  { id: 'coaching', name: 'Coaching effectiveness', focuses: [
+    { id: 'instruction',  name: 'Coaching & instruction' },
+    { id: 'tech-data',    name: 'Tech & data' },
+    { id: 'schedule',     name: 'Schedule management' },
+    { id: 'sport-spec',   name: 'Sport-specific' }
+  ]},
+  { id: 'universal', name: 'Universal competencies', focuses: [
+    { id: 'evidence',   name: 'Evidence-based' },
+    { id: 'innovation', name: 'Innovation & risk' },
+    { id: 'problem',    name: 'Problem solver' },
+    { id: 'modelling',  name: 'Modelling & growth' },
+    { id: 'team-comm',  name: 'Team communication' }
+  ]}
+];
+
+const PERSONAL_MAIN = [
+  { id: 'wellbeing', name: 'Wellbeing' },
+  { id: 'resilience', name: 'Resilience' },
+  { id: 'cognitive', name: 'Cognitive & interpersonal' },
+  { id: 'life-mgmt', name: 'Life management' }
+];
+
+const ALL_PRO_FOCUSES = PROFESSIONAL_TAXONOMY.flatMap(p => p.focuses.map(f => f.id));
+
+//==============================================================================
+// STATE
+//==============================================================================
+const STORAGE_KEY = 'coach_checkpoint_dashboard_v1';
+const state = {
+  submissions: [],     // array of payload objects
+  view: 'roster',      // 'roster' | 'coach' | 'group'
+  selectedId: null,
+  showCsvPaste: false,
+  snapshotMode: false, // true when loaded from a bundled snapshot file
+  snapshotMeta: null   // { exportedAt, exportedBy, count }
+};
+
+function applyBrand() {
+  const r = document.documentElement.style;
+  r.setProperty('--rs-red', BRAND.primary);
+  r.setProperty('--rs-red-dark', BRAND.primaryDark);
+  r.setProperty('--rs-navy', BRAND.secondary);
+  r.setProperty('--rs-navy-light', BRAND.secondaryLight);
+  document.title = `${BRAND.orgShort} ${BRAND.deptShort} — Checkpoint dashboard`;
+  document.getElementById('brand-name').textContent = BRAND.orgShort;
+  document.getElementById('brand-dept').textContent = BRAND.dept;
+  document.getElementById('brand-crest').textContent = BRAND.orgShort.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+}
+
+//==============================================================================
+// PERSISTENCE
+//==============================================================================
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ submissions: state.submissions })); } catch (e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d.submissions) state.submissions = d.submissions;
+  } catch (e) {}
+}
+
+//==============================================================================
+// HELPERS
+//==============================================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function initials(name) {
+  if (!name) return '?';
+  return name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+}
+function pillarById(id) { return PROFESSIONAL_TAXONOMY.find(p => p.id === id); }
+
+// Thriving / steady / surviving is a WELLBEING classification, derived from
+// the 1-5 personal score average. Professional scores measure skill and
+// development trajectory and intentionally do NOT factor in here — a coach
+// can be elite at their craft while personally struggling, and vice versa.
+function statusFromPersonalAvg(avg) {
+  if (avg == null) return 'unknown';
+  if (avg >= 4.0) return 'thriving';
+  if (avg >= 3.0) return 'steady';
+  return 'surviving';
+}
+
+function uniqueSubmissions(subs) {
+  // Keep latest per coachId. Sort by submittedAt asc, then map keeps latest.
+  const byKey = new Map();
+  const sorted = [...subs].sort((a, b) => (a.submittedAt || '').localeCompare(b.submittedAt || ''));
+  for (const s of sorted) {
+    const key = s.coachId || (s.name || s.responseId);
+    byKey.set(key, s);
+  }
+  return Array.from(byKey.values());
+}
+
+//==============================================================================
+// FILE INGEST
+//==============================================================================
+function ingestFiles(fileList) {
+  const promises = Array.from(fileList).map(file => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const txt = e.target.result;
+          if (file.name.toLowerCase().endsWith('.csv') || txt.trim().startsWith('responseId,') || txt.trim().startsWith('submittedAt,')) {
+            const parsed = parseCsv(txt);
+            resolve(parsed);
+          } else {
+            const j = JSON.parse(txt);
+            resolve([j]);
+          }
+        } catch (err) { reject(err); }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
+  });
+  return Promise.all(promises).then(results => {
+    const flat = results.flat();
+    const added = mergeSubmissions(flat);
+    return added;
+  });
+}
+
+function mergeSubmissions(incoming) {
+  // Add to state, deduping on responseId
+  const existingIds = new Set(state.submissions.map(s => s.responseId));
+  let added = 0;
+  for (const s of incoming) {
+    if (s && s.responseId && !existingIds.has(s.responseId)) {
+      state.submissions.push(s);
+      existingIds.add(s.responseId);
+      added++;
+    } else if (s && !s.responseId) {
+      // Generate one for CSVs that lack it
+      s.responseId = `${s.coachId || 'unknown'}-${Date.now().toString(36)}-${added}`;
+      state.submissions.push(s);
+      added++;
+    }
+  }
+  saveState();
+  return added;
+}
+
+//==============================================================================
+// CSV — both for INGEST (parse CSV from sheet) and EXPORT (generate flat CSV)
+//==============================================================================
+const CSV_COLUMNS = [
+  'responseId', 'submittedAt', 'checkpoint', 'season',
+  'coachId', 'firstName', 'lastName', 'name', 'email', 'role', 'date', 'seasonNote',
+  ...PROFESSIONAL_TAXONOMY.flatMap(p => p.focuses.map(f => `pro_${p.id}_${f.id}`)),
+  ...PROFESSIONAL_TAXONOMY.map(p => `pro_${p.id}_avg`),
+  'pro_overall_avg',
+  ...PROFESSIONAL_TAXONOMY.map(p => `pro_${p.id}_comment`),
+  ...PERSONAL_MAIN.map(c => `pers_${c.id}`),
+  ...PERSONAL_MAIN.map(c => `pers_${c.id}_comment`),
+  'pers_overall_avg',
+  'finalComment'
+];
+
+function payloadToCsvRow(p) {
+  const out = {};
+  out.responseId  = p.responseId || '';
+  out.submittedAt = p.submittedAt || '';
+  out.checkpoint  = p.checkpoint  || '';
+  out.season      = p.season      || '';
+  out.coachId     = p.coachId     || '';
+  out.firstName   = p.firstName   || '';
+  out.lastName    = p.lastName    || '';
+  out.name        = p.name        || '';
+  out.email       = p.email       || '';
+  out.role        = p.role        || '';
+  out.date        = p.date        || '';
+  out.seasonNote  = p.seasonNote  || '';
+  PROFESSIONAL_TAXONOMY.forEach(pi => pi.focuses.forEach(f => {
+    out[`pro_${pi.id}_${f.id}`] = p.professional?.scores?.[f.id] ?? '';
+  }));
+  PROFESSIONAL_TAXONOMY.forEach(pi => {
+    out[`pro_${pi.id}_avg`] = p.professional?.pillarAverages?.[pi.id] ?? '';
+  });
+  out.pro_overall_avg = p.professional?.overallAverage ?? '';
+  PROFESSIONAL_TAXONOMY.forEach(pi => {
+    out[`pro_${pi.id}_comment`] = p.professional?.comments?.[pi.id] ?? '';
+  });
+  PERSONAL_MAIN.forEach(c => {
+    out[`pers_${c.id}`] = p.personal?.scores?.[c.id] ?? '';
+  });
+  PERSONAL_MAIN.forEach(c => {
+    out[`pers_${c.id}_comment`] = p.personal?.comments?.[c.id] ?? '';
+  });
+  out.pers_overall_avg = p.personal?.overallAverage ?? '';
+  out.finalComment = p.finalComment || '';
+  return out;
+}
+
+function csvEscape(s) {
+  s = String(s == null ? '' : s);
+  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function generateCsv(submissions) {
+  const rows = [CSV_COLUMNS.map(csvEscape).join(',')];
+  for (const s of submissions) {
+    const r = payloadToCsvRow(s);
+    rows.push(CSV_COLUMNS.map(col => csvEscape(r[col])).join(','));
+  }
+  return rows.join('\r\n');
+}
+
+function parseCsvLine(line) {
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"' && line[i+1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') { inQ = false; }
+      else cur += ch;
+    } else {
+      if (ch === ',') { out.push(cur); cur = ''; }
+      else if (ch === '"') { inQ = true; }
+      else cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.length > 0);
+  if (!lines.length) return [];
+  const headers = parseCsvLine(lines[0]);
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = parseCsvLine(lines[i]);
+    if (cells.every(c => c === '')) continue;
+    const row = {};
+    headers.forEach((h, j) => { row[h.trim()] = cells[j] != null ? cells[j] : ''; });
+    out.push(rowToPayload(row));
+  }
+  return out;
+}
+
+function rowToPayload(row) {
+  const num = v => { const n = parseFloat(v); return isNaN(n) ? null : n; };
+  const p = {
+    schemaVersion: 1,
+    responseId: row.responseId || '',
+    submittedAt: row.submittedAt || '',
+    checkpoint: row.checkpoint || '',
+    season: row.season || '',
+    coachId: row.coachId || '',
+    firstName: row.firstName || '',
+    lastName: row.lastName || '',
+    name: row.name || '',
+    email: row.email || '',
+    role: row.role || '',
+    date: row.date || '',
+    seasonNote: row.seasonNote || '',
+    professional: {
+      scores: {},
+      pillarAverages: {},
+      overallAverage: num(row.pro_overall_avg),
+      comments: {}
+    },
+    personal: {
+      scores: {},
+      overallAverage: num(row.pers_overall_avg),
+      comments: {}
+    },
+    finalComment: row.finalComment || ''
+  };
+  PROFESSIONAL_TAXONOMY.forEach(pi => pi.focuses.forEach(f => {
+    p.professional.scores[f.id] = num(row[`pro_${pi.id}_${f.id}`]);
+  }));
+  PROFESSIONAL_TAXONOMY.forEach(pi => {
+    p.professional.pillarAverages[pi.id] = num(row[`pro_${pi.id}_avg`]);
+    p.professional.comments[pi.id] = row[`pro_${pi.id}_comment`] || '';
+  });
+  PERSONAL_MAIN.forEach(c => {
+    p.personal.scores[c.id] = num(row[`pers_${c.id}`]);
+    p.personal.comments[c.id] = row[`pers_${c.id}_comment`] || '';
+  });
+  return p;
+}
+
+function exportCsv() {
+  const subs = uniqueSubmissions(state.submissions);
+  const csv = generateCsv(subs);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `coach_checkpoint_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
+}
+
+//==============================================================================
+// SPIDER CHART — configurable scale (20-80 or 1-5), wraps long axis labels
+//==============================================================================
+function wrapLabel(text, maxLen) {
+  // Greedy word-wrap into lines of up to maxLen chars (won't break mid-word).
+  // Allows the line to run slightly over maxLen if the next token is a connective
+  // ('&', 'and', '/') so we don't start a new line with one.
+  const CONNECTIVES = new Set(['&', 'and', '/', '·']);
+  const words = String(text).split(/\s+/);
+  const lines = [];
+  let cur = '';
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const candidate = cur ? cur + ' ' + w : w;
+    const isConnective = CONNECTIVES.has(w);
+    // Allow connectives even if they push us over by 2 chars
+    if (candidate.length <= maxLen || (isConnective && candidate.length <= maxLen + 2)) {
+      cur = candidate;
+    } else {
+      if (cur) lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function spider(items, opts = {}) {
+  // items: array of { name, value }. opts.maxValue defaults to 80;
+  // opts.ringValues is the list of ring levels to draw.
+  const size       = opts.size       || 240;
+  const labelPad   = opts.labelPad   || 80;
+  const maxValue   = opts.maxValue   || 80;
+  const ringValues = opts.ringValues || [20, 40, 60, 80];
+  const wrapAt     = opts.wrapAt     || 14;
+  const fontSize   = opts.fontSize   || 11;
+  const lineHeight = fontSize + 2;
+
+  const W = size + labelPad * 2;
+  const H = size + labelPad * 2;
+  const cx = W / 2, cy = H / 2;
+  const R = size * 0.40;
+  const n = items.length;
+  const angle = i => -Math.PI / 2 + (i * 2 * Math.PI / n);
+
+  // Concentric rings
+  const rings = ringValues.map(level => {
+    const r = R * (level / maxValue);
+    const pts = items.map((_, i) => {
+      const a = angle(i);
+      return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+    }).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="#e5e7eb" stroke-width="1" />`;
+  }).join('');
+
+  // Axis lines + multi-line wrapped labels
+  const axes = items.map((p, i) => {
+    const a = angle(i);
+    const cosA = Math.cos(a), sinA = Math.sin(a);
+    // Label anchor depends on which side of the circle we're on
+    let anchor;
+    if (Math.abs(cosA) < 0.15) anchor = 'middle';
+    else if (cosA > 0)         anchor = 'start';
+    else                        anchor = 'end';
+
+    // Push labels outward beyond the polygon vertex, with a little extra
+    // margin so wrapped lines stay clear of the chart area.
+    const labelDist = R + 18;
+    const tx = cx + labelDist * cosA;
+    const ty = cy + labelDist * sinA;
+
+    const lines = wrapLabel(p.name, wrapAt);
+    // Center the multi-line block vertically around (tx, ty)
+    const blockTop = ty - ((lines.length - 1) * lineHeight) / 2;
+    // For top labels (sin < 0), nudge upward so they sit above the vertex.
+    // For bottom labels (sin > 0), nudge downward so they sit below.
+    const verticalNudge = sinA < -0.3 ? -lineHeight * 0.4
+                        : sinA >  0.3 ?  lineHeight * 0.4 : 0;
+    const startY = blockTop + verticalNudge;
+
+    const tspans = lines.map((line, li) => {
+      const dy = li === 0 ? 0 : lineHeight;
+      return `<tspan x="${tx}" dy="${dy}">${escapeHtml(line)}</tspan>`;
+    }).join('');
+
+    return `
+      <line x1="${cx}" y1="${cy}" x2="${cx + R * cosA}" y2="${cy + R * sinA}" stroke="#e5e7eb" stroke-width="1" />
+      <text x="${tx}" y="${startY}" font-size="${fontSize}" fill="#1a1a1a" text-anchor="${anchor}" dominant-baseline="middle" font-weight="500">${tspans}</text>
+    `;
+  }).join('');
+
+  // Data polygon
+  const dataPts = items.map((p, i) => {
+    const a = angle(i);
+    const v = (p.value || 0) / maxValue;
+    const r = R * Math.max(0, Math.min(1, v));
+    return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+  }).join(' ');
+
+  // Dots — slightly bigger, white stroke for readability over the polygon
+  const dots = items.map((p, i) => {
+    const a = angle(i);
+    const v = (p.value || 0) / maxValue;
+    const r = R * v;
+    return `<circle cx="${cx + r * Math.cos(a)}" cy="${cy + r * Math.sin(a)}" r="4" fill="${BRAND.primary}" stroke="#fff" stroke-width="1.5" />`;
+  }).join('');
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" style="max-width: ${W}px;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Spider plot">
+      ${rings}
+      ${axes}
+      <polygon points="${dataPts}" fill="${BRAND.primary}33" stroke="${BRAND.primary}" stroke-width="2" />
+      ${dots}
+    </svg>
+  `;
+}
+
+//==============================================================================
+// RENDERERS
+//==============================================================================
+function renderTopbarActions() {
+  const hasData = state.submissions.length > 0;
+  const navButtons = hasData
+    ? `<button onclick="setView('roster')">All coaches</button>
+       <button onclick="setView('group')">Group rollup</button>
+       <button onclick="printCurrentView()">Print to PDF</button>`
+    : '';
+  const adminButtons = state.snapshotMode
+    ? ''
+    : `${hasData ? '<button onclick="exportCsv()">Export CSV</button>' : ''}
+       ${hasData ? '<button onclick="exportSnapshot()">Export snapshot</button>' : ''}
+       <button class="primary" onclick="document.getElementById('hidden-file-input').click()">+ Add responses</button>`;
+  document.getElementById('topbar-actions').innerHTML = navButtons + adminButtons;
+}
+
+function renderEmpty() {
+  return `
+    <div class="page-header">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · Checkpoint dashboard</div>
+      <h1>Early-season coach checkpoint</h1>
+      <p>Drop response files in to begin. Each coach submits a JSON file (or their row lands directly in your Google Sheet).</p>
+    </div>
+
+    <div class="dropzone" id="dropzone">
+      <div class="icon">⇪</div>
+      <h2>Drop JSON response files here</h2>
+      <p class="muted">Or paste your sheet&rsquo;s CSV. Files saved to your browser so you can keep adding as responses come in.</p>
+      <div class="file-input">
+        <button onclick="document.getElementById('hidden-file-input').click()">Choose files…</button>
+      </div>
+      <div class="sep-row">
+        <span class="muted">Working from the Google Sheet?</span>
+        <button onclick="openCsvPaste()">Paste CSV from sheet</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>How this fits together</h3>
+      <p style="font-size:13px;">
+        <b>1.</b> Send <code>coach_checkpoint_form.html</code> to each coach. They fill it out in their browser.<br>
+        <b>2.</b> Their response either auto-posts to your Google Sheet (if you set up the webhook) <i>or</i> downloads as JSON for them to email back.<br>
+        <b>3.</b> Drop JSON files in here, or paste your sheet's CSV. The dashboard shows individual reports + a group rollup.<br>
+        <b>4.</b> Hit <b>Export CSV</b> for a clean flat file you can drop into the platform later.
+      </p>
+    </div>
+  `;
+}
+
+function renderRoster() {
+  const subs = uniqueSubmissions(state.submissions);
+  if (!subs.length) return renderEmpty();
+
+  // Compute stats
+  const proAvg = subs.map(s => s.professional?.overallAverage).filter(v => typeof v === 'number');
+  const persAvg = subs.map(s => s.personal?.overallAverage).filter(v => typeof v === 'number');
+  const teamProAvg = proAvg.length ? Math.round(proAvg.reduce((a,b)=>a+b,0) / proAvg.length) : null;
+  const teamPersAvg = persAvg.length ? (persAvg.reduce((a,b)=>a+b,0) / persAvg.length).toFixed(1) : null;
+  const surviving = subs.filter(s => statusFromPersonalAvg(s.personal?.overallAverage) === 'surviving').length;
+  const thriving = subs.filter(s => statusFromPersonalAvg(s.personal?.overallAverage) === 'thriving').length;
+
+  // Sort: surviving first (wellbeing priority), then steady, then thriving
+  const order = { surviving: 0, steady: 1, thriving: 2, unknown: 3 };
+  const sorted = [...subs].sort((a, b) => {
+    const sa = order[statusFromPersonalAvg(a.personal?.overallAverage)];
+    const sb = order[statusFromPersonalAvg(b.personal?.overallAverage)];
+    if (sa !== sb) return sa - sb;
+    return (a.personal?.overallAverage || 0) - (b.personal?.overallAverage || 0);
+  });
+
+  return `
+    <div class="page-header">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · Checkpoint dashboard</div>
+      <h1>Early-season checkpoint &mdash; ${subs.length} ${subs.length === 1 ? 'response' : 'responses'}</h1>
+      <p class="muted">Tap a coach for the full report. Surviving / steady / thriving reflects <b>personal wellbeing</b> (&lt;3 / 3&ndash;3.9 / 4+); pro scores are skill snapshots, not wellbeing signals.</p>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="v">${subs.length}</div><div class="l">Submissions</div></div>
+      <div class="kpi"><div class="v">${teamPersAvg ?? '—'}<span style="font-size:14px; color:var(--ink-mute);"> / 5</span></div><div class="l">Team avg (personal)</div></div>
+      <div class="kpi"><div class="v">${teamProAvg ?? '—'}</div><div class="l">Team avg (pro)</div></div>
+      <div class="kpi"><div class="v status-thriving">${thriving}</div><div class="l">Thriving</div></div>
+      <div class="kpi"><div class="v status-surviving">${surviving}</div><div class="l">Need support</div></div>
+    </div>
+
+    <div class="roster">
+      ${sorted.map(s => {
+        const status = statusFromPersonalAvg(s.personal?.overallAverage);
+        return `
+          <div class="roster-tile" onclick="selectCoach('${escapeHtml(s.responseId)}')">
+            <div class="name">${escapeHtml(s.name || 'Unknown')}</div>
+            <div class="role">${escapeHtml(s.role || '')}</div>
+            <div class="scores">
+              <div>Personal <b class="status-${status}">${s.personal?.overallAverage ?? '—'}<span style="color:var(--ink-mute); font-weight:400;"> /5</span></b></div>
+              <div>Pro <b>${s.professional?.overallAverage ?? '—'}</b></div>
+            </div>
+            <div style="margin-top:10px;">
+              <span class="status-chip bg-${status}">${status}</span>
+              <span class="muted" style="font-size:11px; margin-left:8px;">${escapeHtml((s.date || '').slice(0, 10))}</span>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    ${state.snapshotMode ? '' : `
+    <div class="card admin-only" style="margin-top: 20px;">
+      <h3>All submissions</h3>
+      <ul class="submission-list">
+        ${state.submissions.slice().reverse().map(s => `
+          <li>
+            <div>
+              <b>${escapeHtml(s.name || 'Unknown')}</b> <span class="muted">&middot; ${escapeHtml(s.role || '')}</span>
+              <div class="meta">${escapeHtml((s.submittedAt || '').slice(0, 16).replace('T', ' '))} &middot; ID ${escapeHtml(s.responseId)}</div>
+            </div>
+            <button onclick="removeSubmission('${escapeHtml(s.responseId)}')">Remove</button>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+    `}
+  `;
+}
+
+function renderCoach() {
+  const s = state.submissions.find(x => x.responseId === state.selectedId);
+  if (!s) { setView('roster'); return ''; }
+  const status = statusFromPersonalAvg(s.personal?.overallAverage);
+  const pillarSpider = PROFESSIONAL_TAXONOMY.map(p => ({
+    name: p.name,
+    value: s.professional?.pillarAverages?.[p.id] || 0
+  }));
+  const personalSpider = PERSONAL_MAIN.map(c => ({
+    name: c.name,
+    value: s.personal?.scores?.[c.id] || 0
+  }));
+  return `
+    <button class="back-btn" onclick="setView('roster')">&larr; All coaches</button>
+
+    <div class="card">
+      <div class="detail-head">
+        <div class="who">
+          <div class="avatar bg-${status}">${initials(s.name)}</div>
+          <div>
+            <div class="eyebrow">${escapeHtml(s.checkpoint || 'Checkpoint')}</div>
+            <h1>${escapeHtml(s.name || 'Unknown')}</h1>
+            <div class="muted">${escapeHtml(s.role || '')} &middot; submitted ${escapeHtml((s.submittedAt || '').slice(0, 10))}</div>
+            ${s.email ? `<div class="muted" style="margin-top: 2px;"><a href="mailto:${escapeHtml(s.email)}" style="color: inherit;">${escapeHtml(s.email)}</a></div>` : ''}
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="status-chip bg-${status}">${status}</span>
+          <button class="print-hide" onclick="printAs('portrait')" style="background: transparent; border: 1px solid var(--line); color: var(--ink-soft); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: inherit;">Print to PDF</button>
+        </div>
+      </div>
+
+      ${s.seasonNote ? `<div class="session-note"><b>Season context:</b> ${escapeHtml(s.seasonNote)}</div>` : ''}
+
+      <div class="kpi-row" style="margin-top:14px;">
+        <div class="kpi"><div class="v">${s.professional?.overallAverage ?? '—'}</div><div class="l">Pro overall</div></div>
+        ${PROFESSIONAL_TAXONOMY.map(p => `
+          <div class="kpi"><div class="v">${s.professional?.pillarAverages?.[p.id] ?? '—'}</div><div class="l">${escapeHtml(p.name)}</div></div>
+        `).join('')}
+        <div class="kpi"><div class="v">${s.personal?.overallAverage ?? '—'}<span style="font-size:14px; color:var(--ink-mute);"> / 5</span></div><div class="l">Personal overall</div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Professional</h2>
+        ${PROFESSIONAL_TAXONOMY.map(p => `
+          <div class="pillar-block">
+            <div class="pillar-head">
+              <div class="pillar-head-text">
+                <h3>${escapeHtml(p.name)}</h3>
+                <div class="pillar-head-sub">Average of ${p.focuses.length} focus area${p.focuses.length === 1 ? '' : 's'} below</div>
+              </div>
+              <div class="pillar-avg-wrap">
+                <div class="pillar-avg">${s.professional?.pillarAverages?.[p.id] ?? '—'}</div>
+                <div class="pillar-avg-label">Avg / 80</div>
+              </div>
+            </div>
+            <div class="focus-list">
+              ${p.focuses.map(f => {
+                const v = s.professional?.scores?.[f.id];
+                return `<div class="focus-line s-${v}"><b>${escapeHtml(f.name)}</b><span class="score">${v ?? '—'}</span></div>`;
+              }).join('')}
+            </div>
+            ${s.professional?.comments?.[p.id]
+              ? `<div class="comment">&ldquo;${escapeHtml(s.professional.comments[p.id])}&rdquo;</div>`
+              : `<div class="comment none">No reflection added.</div>`}
+          </div>
+        `).join('')}
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Pillar shape</h2>
+          <div class="spider-wrap">${spider(pillarSpider, { size: 240, labelPad: 90, wrapAt: 14 })}</div>
+          <div class="muted" style="text-align:center; font-size:12px;">Outer ring = 80 &middot; Each ring = 20 points</div>
+        </div>
+
+        <div class="card">
+          <h2>Personal shape</h2>
+          <div class="spider-wrap">${spider(personalSpider, { size: 240, labelPad: 90, wrapAt: 14, maxValue: 5, ringValues: [1, 2, 3, 4, 5] })}</div>
+          <div class="muted" style="text-align:center; font-size:12px;">Outer ring = 5 &middot; Each ring = 1 point</div>
+        </div>
+
+        <div class="card">
+          <h2>Personal &mdash; detail</h2>
+          ${PERSONAL_MAIN.map(c => {
+            const v = s.personal?.scores?.[c.id];
+            const personalStatus = v >= 4 ? 'thriving' : (v >= 3 ? 'steady' : 'surviving');
+            return `
+              <div class="pillar-block">
+                <div class="pillar-head">
+                  <div class="pillar-head-text">
+                    <h3>${escapeHtml(c.name)}</h3>
+                  </div>
+                  <div class="pillar-avg-wrap">
+                    <div class="pillar-avg status-${personalStatus}">${v ?? '—'}<span style="font-size:12px; color:var(--ink-mute); font-weight:400;"> / 5</span></div>
+                    <div class="pillar-avg-label">Self-score</div>
+                  </div>
+                </div>
+                ${s.personal?.comments?.[c.id]
+                  ? `<div class="comment" style="font-size:12px;">&ldquo;${escapeHtml(s.personal.comments[c.id])}&rdquo;</div>`
+                  : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        ${s.finalComment ? `
+          <div class="card">
+            <h2>Final comment</h2>
+            <div class="comment">&ldquo;${escapeHtml(s.finalComment)}&rdquo;</div>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderGroup() {
+  const subs = uniqueSubmissions(state.submissions);
+  if (!subs.length) return renderEmpty();
+
+  // Aggregate
+  const focusAvgs = {};
+  ALL_PRO_FOCUSES.forEach(fid => {
+    const vals = subs.map(s => s.professional?.scores?.[fid]).filter(v => typeof v === 'number');
+    focusAvgs[fid] = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0) / vals.length) : null;
+  });
+  const pillarAvgs = {};
+  PROFESSIONAL_TAXONOMY.forEach(p => {
+    const vals = subs.map(s => s.professional?.pillarAverages?.[p.id]).filter(v => typeof v === 'number');
+    pillarAvgs[p.id] = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0) / vals.length) : null;
+  });
+  const personalAvgs = {};
+  PERSONAL_MAIN.forEach(c => {
+    const vals = subs.map(s => s.personal?.scores?.[c.id]).filter(v => typeof v === 'number');
+    personalAvgs[c.id] = vals.length ? (vals.reduce((a,b)=>a+b,0) / vals.length).toFixed(1) : null;
+  });
+
+  const pillarSpider = PROFESSIONAL_TAXONOMY.map(p => ({
+    name: p.name,
+    value: pillarAvgs[p.id] || 0
+  }));
+  const personalSpider = PERSONAL_MAIN.map(c => ({
+    name: c.name,
+    value: parseFloat(personalAvgs[c.id]) || 0
+  }));
+
+  const barClass = v => v == null ? '' : (v < 42 ? 'low' : (v < 55 ? 'mid' : 'high'));
+  const personalBarClass = v => v == null ? '' : (v < 2.5 ? 'low' : (v < 3.8 ? 'mid' : 'high'));
+
+  return `
+    <button class="back-btn" onclick="setView('roster')">&larr; All coaches</button>
+
+    <div class="page-header">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · Group rollup</div>
+      <h1>Team-wide checkpoint view</h1>
+      <p class="muted">${subs.length} ${subs.length === 1 ? 'response' : 'responses'} aggregated. Sub-areas show team average on the 20&ndash;80 scale.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>Professional &mdash; sub-area averages</h2>
+        ${PROFESSIONAL_TAXONOMY.map(p => `
+          <div class="pillar-block">
+            <div class="pillar-head">
+              <h3>${escapeHtml(p.name)}</h3>
+              <div class="pillar-avg">${pillarAvgs[p.id] ?? '—'}</div>
+            </div>
+            ${p.focuses.map(f => {
+              const v = focusAvgs[f.id];
+              const w = v == null ? 0 : (v / 80) * 100;
+              return `
+                <div class="group-bar-row">
+                  <div class="label">${escapeHtml(f.name)}</div>
+                  <div class="bar-track"><div class="bar-fill ${barClass(v)}" style="width: ${w}%;"></div></div>
+                  <div class="num">${v ?? '—'}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `).join('')}
+      </div>
+
+      <div>
+        <div class="card">
+          <h2>Pillar shape (team)</h2>
+          <div class="spider-wrap">${spider(pillarSpider, { size: 240, labelPad: 90, wrapAt: 14 })}</div>
+          <div class="muted" style="text-align:center; font-size:12px;">Outer ring = 80 &middot; Each ring = 20 points</div>
+        </div>
+
+        <div class="card">
+          <h2>Personal shape (team)</h2>
+          <div class="spider-wrap">${spider(personalSpider, { size: 240, labelPad: 90, wrapAt: 14, maxValue: 5, ringValues: [1, 2, 3, 4, 5] })}</div>
+          <div class="muted" style="text-align:center; font-size:12px;">Outer ring = 5 &middot; Each ring = 1 point</div>
+        </div>
+
+        <div class="card">
+          <h2>Personal &mdash; team averages</h2>
+          ${PERSONAL_MAIN.map(c => {
+            const v = personalAvgs[c.id];
+            const w = v == null ? 0 : (parseFloat(v) / 5) * 100;
+            return `
+              <div class="group-bar-row">
+                <div class="label">${escapeHtml(c.name)}</div>
+                <div class="bar-track"><div class="bar-fill ${personalBarClass(parseFloat(v))}" style="width: ${w}%;"></div></div>
+                <div class="num">${v ?? '—'}<span style="font-size:11px; color:var(--ink-mute);"> /5</span></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Professional reflections</h2>
+      <p class="muted">Every coach's written reflection on each pillar, with the team's average score and range across the staff. Useful for spotting cross-staff themes and divergent self-assessments.</p>
+      ${PROFESSIONAL_TAXONOMY.map(p => {
+        const pillarScores = subs.map(s => s.professional?.pillarAverages?.[p.id]).filter(v => typeof v === 'number');
+        const avg = pillarScores.length ? Math.round(pillarScores.reduce((a, b) => a + b, 0) / pillarScores.length) : null;
+        const min = pillarScores.length ? Math.min(...pillarScores) : null;
+        const max = pillarScores.length ? Math.max(...pillarScores) : null;
+        const comments = subs
+          .filter(s => s.professional?.comments?.[p.id])
+          .map(s => ({ name: s.name, text: s.professional.comments[p.id] }));
+        const noCommentCoaches = subs
+          .filter(s => !s.professional?.comments?.[p.id])
+          .map(s => s.name);
+        return `
+          <div class="pillar-block">
+            <div class="pillar-head">
+              <div class="pillar-head-text">
+                <h3>${escapeHtml(p.name)}</h3>
+                <div class="pillar-head-sub">${comments.length} of ${subs.length} reflections${pillarScores.length ? ` &middot; range ${min}&ndash;${max}` : ''}</div>
+              </div>
+              <div class="pillar-avg-wrap">
+                <div class="pillar-avg">${avg ?? '—'}</div>
+                <div class="pillar-avg-label">Team avg / 80</div>
+              </div>
+            </div>
+            ${comments.length
+              ? comments.map(c => `
+                  <div class="comment">
+                    <b style="font-style: normal; color: var(--rs-navy);">${escapeHtml(c.name)}:</b> &ldquo;${escapeHtml(c.text)}&rdquo;
+                  </div>
+                `).join('')
+              : '<div class="comment none">No written reflections submitted for this pillar yet.</div>'
+            }
+            ${noCommentCoaches.length && comments.length
+              ? `<div class="muted" style="font-size:11px; margin-top:8px; padding-left:12px;">No reflection from: ${escapeHtml(noCommentCoaches.join(', '))}</div>`
+              : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <h2>Personal reflections</h2>
+      <p class="muted">Every coach's written context on each personal domain, with the team's average score and range. The 1&ndash;5 scale is calibrated so 3 = "OK / managing" &mdash; not a neutral midpoint.</p>
+      ${PERSONAL_MAIN.map(c => {
+        const scoreList = subs.map(s => s.personal?.scores?.[c.id]).filter(v => typeof v === 'number');
+        const avg = scoreList.length ? (scoreList.reduce((a, b) => a + b, 0) / scoreList.length).toFixed(1) : null;
+        const min = scoreList.length ? Math.min(...scoreList) : null;
+        const max = scoreList.length ? Math.max(...scoreList) : null;
+        const personalStatus = avg ? statusFromPersonalAvg(parseFloat(avg)) : 'unknown';
+        const comments = subs
+          .filter(s => s.personal?.comments?.[c.id])
+          .map(s => ({ name: s.name, text: s.personal.comments[c.id], score: s.personal?.scores?.[c.id] }));
+        const noCommentCoaches = subs
+          .filter(s => !s.personal?.comments?.[c.id])
+          .map(s => s.name);
+        return `
+          <div class="pillar-block">
+            <div class="pillar-head">
+              <div class="pillar-head-text">
+                <h3>${escapeHtml(c.name)}</h3>
+                <div class="pillar-head-sub">${comments.length} of ${subs.length} reflections${scoreList.length ? ` &middot; range ${min}&ndash;${max} / 5` : ''}</div>
+              </div>
+              <div class="pillar-avg-wrap">
+                <div class="pillar-avg status-${personalStatus}">${avg ?? '—'}<span style="font-size:12px; color:var(--ink-mute); font-weight:400;"> / 5</span></div>
+                <div class="pillar-avg-label">Team avg</div>
+              </div>
+            </div>
+            ${comments.length
+              ? comments.map(c => `
+                  <div class="comment">
+                    <b style="font-style: normal; color: var(--rs-navy);">${escapeHtml(c.name)}${typeof c.score === 'number' ? ` <span style="font-weight:400; color:var(--ink-mute); font-size:11px;">[${c.score}/5]</span>` : ''}:</b> &ldquo;${escapeHtml(c.text)}&rdquo;
+                  </div>
+                `).join('')
+              : '<div class="comment none">No written reflections submitted for this domain yet.</div>'
+            }
+            ${noCommentCoaches.length && comments.length
+              ? `<div class="muted" style="font-size:11px; margin-top:8px; padding-left:12px;">No reflection from: ${escapeHtml(noCommentCoaches.join(', '))}</div>`
+              : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    ${(() => {
+      const finals = subs.filter(s => s.finalComment && s.finalComment.trim()).map(s => ({ name: s.name, text: s.finalComment }));
+      if (!finals.length) return '';
+      return `
+        <div class="card">
+          <h2>Final comments</h2>
+          <p class="muted">Open-ended notes from the "Anything else?" question at the end of the form. These are often where the most candid signals live &mdash; flags, asks, context that didn't fit a specific section.</p>
+          <div class="pillar-block" style="padding-top: 4px;">
+            <div class="pillar-head">
+              <div class="pillar-head-text">
+                <h3>Open notes</h3>
+                <div class="pillar-head-sub">${finals.length} of ${subs.length} coaches left a final comment</div>
+              </div>
+            </div>
+            ${finals.map(f => `
+              <div class="comment">
+                <b style="font-style: normal; color: var(--rs-navy);">${escapeHtml(f.name)}:</b> &ldquo;${escapeHtml(f.text)}&rdquo;
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    })()}
+  `;
+}
+
+//==============================================================================
+// VIEW / ACTIONS
+//==============================================================================
+function setView(v) {
+  state.view = v;
+  state.selectedId = null;
+  render();
+}
+function selectCoach(id) {
+  state.selectedId = id;
+  state.view = 'coach';
+  render();
+}
+function removeSubmission(id) {
+  if (!confirm('Remove this submission from the local store? (The underlying file / sheet row stays put.)')) return;
+  state.submissions = state.submissions.filter(s => s.responseId !== id);
+  saveState();
+  render();
+}
+
+function openCsvPaste() { state.showCsvPaste = true; render(); }
+function closeCsvPaste() { state.showCsvPaste = false; render(); }
+
+// ---------------------------------------------------------------------------
+// Print to PDF — injects an @page rule for the orientation we want, fires
+// window.print() (which all browsers route through a "Save as PDF" target),
+// then cleans up the injected style.
+// ---------------------------------------------------------------------------
+function printAs(orientation) {
+  const o = orientation === 'portrait' ? 'portrait' : 'landscape';
+  // Remove any previous orientation style so successive prints don't pile up
+  const existing = document.getElementById('print-orientation-style');
+  if (existing) existing.remove();
+  const s = document.createElement('style');
+  s.id = 'print-orientation-style';
+  s.textContent = `@media print { @page { size: A4 ${o}; margin: 12mm; } }`;
+  document.head.appendChild(s);
+  // Give the browser a tick to register the style, then print
+  setTimeout(() => {
+    window.print();
+    // Leave the style in place briefly so the print dialog has the right
+    // orientation, then strip it (some browsers re-render after dialog close).
+    setTimeout(() => { const el = document.getElementById('print-orientation-style'); if (el) el.remove(); }, 800);
+  }, 60);
+}
+
+function printCurrentView() {
+  // Roster + group views are landscape (denser, wide grids); coach detail portrait.
+  if (state.view === 'coach') printAs('portrait');
+  else printAs('landscape');
+}
+
+// ---------------------------------------------------------------------------
+// Export snapshot — bundle current submissions into a self-contained HTML
+// file that can be emailed to another viewer (e.g. Nick). Opens read-only on
+// their end, no upload / hosting required.
+// ---------------------------------------------------------------------------
+let ORIGINAL_HTML_SOURCE = null; // captured at boot, before any user data is rendered
+
+function exportSnapshot() {
+  if (state.snapshotMode) {
+    alert('You\'re already viewing a snapshot. Export is disabled in read-only mode.');
+    return;
+  }
+  const subs = uniqueSubmissions(state.submissions);
+  if (!subs.length) {
+    alert('Nothing to export yet — load some responses first.');
+    return;
+  }
+  if (!ORIGINAL_HTML_SOURCE) {
+    alert('Couldn\'t read source HTML to bundle. Try refreshing the page and exporting again.');
+    return;
+  }
+
+  const meta = {
+    exportedAt: new Date().toISOString(),
+    exportedBy: 'Erin Coleman',
+    count: subs.length,
+    note: 'Snapshot exported from the coach checkpoint dashboard. View-only.'
+  };
+
+  // Inject the data + meta into the captured HTML by replacing the marker lines.
+  // The markers are intentionally unique so this is a safe string replace.
+  let html = ORIGINAL_HTML_SOURCE;
+  // Use a function replacement to avoid issues with $ characters in JSON
+  html = html.replace(
+    /const EMBEDDED_SUBMISSIONS = \[\]; \/\* SNAPSHOT_DATA \*\//,
+    () => `const EMBEDDED_SUBMISSIONS = ${JSON.stringify(subs)}; /* SNAPSHOT_DATA */`
+  );
+  html = html.replace(
+    /const SNAPSHOT_META = null;\s+\/\* SNAPSHOT_META \*\//,
+    () => `const SNAPSHOT_META = ${JSON.stringify(meta)};      /* SNAPSHOT_META */`
+  );
+
+  if (!html.startsWith('<!DOCTYPE')) html = '<!DOCTYPE html>\n' + html;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `coach_checkpoint_snapshot_${new Date().toISOString().slice(0, 10)}.html`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
+}
+
+function loadPastedCsv() {
+  const ta = document.getElementById('csv-paste-text');
+  if (!ta) return;
+  try {
+    const parsed = parseCsv(ta.value);
+    const added = mergeSubmissions(parsed);
+    closeCsvPaste();
+    alert(`Loaded ${added} new submission${added === 1 ? '' : 's'}.`);
+    render();
+  } catch (e) {
+    alert('Could not parse CSV: ' + e.message);
+  }
+}
+
+//==============================================================================
+// MAIN RENDER
+//==============================================================================
+function render() {
+  renderTopbarActions();
+  let html = '';
+  // Snapshot banner shows on every view when loaded from a bundled file
+  if (state.snapshotMode && state.snapshotMeta) {
+    const meta = state.snapshotMeta;
+    const exportedDate = (meta.exportedAt || '').slice(0, 10);
+    html += `
+      <div class="snapshot-banner">
+        <div>
+          <b>Snapshot &middot; view-only</b>
+          <div class="meta">${escapeHtml(meta.count || state.submissions.length)} ${(meta.count || state.submissions.length) === 1 ? 'response' : 'responses'} &middot; exported ${escapeHtml(exportedDate)} by ${escapeHtml(meta.exportedBy || 'the Coordinator')}</div>
+        </div>
+        <div class="meta">This is a frozen export. Reach out to ${escapeHtml(meta.exportedBy || 'the Coordinator')} for the latest.</div>
+      </div>
+    `;
+  }
+  if (state.view === 'coach') html += renderCoach();
+  else if (state.view === 'group') html += renderGroup();
+  else html += state.submissions.length ? renderRoster() : renderEmpty();
+
+  if (state.showCsvPaste) {
+    html += `
+      <div class="csv-paste-overlay" onclick="if(event.target===this) closeCsvPaste()">
+        <div class="csv-paste-modal">
+          <h2>Paste CSV from your Google Sheet</h2>
+          <p class="muted">In your sheet: File &rarr; Download &rarr; Comma-separated values, then open in a text editor and paste here. Or copy the full data range. Headers must match (or it&rsquo;ll skip unknown columns).</p>
+          <textarea id="csv-paste-text" placeholder="Paste CSV here..."></textarea>
+          <div class="actions">
+            <button class="btn-ghost" onclick="closeCsvPaste()">Cancel</button>
+            <button class="btn-primary" onclick="loadPastedCsv()">Load CSV</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById('root').innerHTML = html;
+  setupDropzone();
+}
+
+function setupDropzone() {
+  const dz = document.getElementById('dropzone');
+  if (!dz) return;
+  ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dz.classList.add('dragover');
+  }));
+  ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (ev === 'dragleave' && e.target !== dz) return;
+    dz.classList.remove('dragover');
+  }));
+  dz.addEventListener('drop', e => {
+    if (e.dataTransfer.files.length) {
+      handleFiles(e.dataTransfer.files);
+    }
+  });
+}
+
+function handleFiles(files) {
+  ingestFiles(files)
+    .then(added => {
+      render();
+      // Brief alert
+      console.log(`Loaded ${added} submission${added === 1 ? '' : 's'}`);
+    })
+    .catch(err => {
+      alert('Could not load file: ' + err.message);
+    });
+}
+
+//==============================================================================
+// INIT
+//==============================================================================
+// Expose state on window for dev console / smoke tests
+if (typeof window !== 'undefined') window.state = state;
+
+// Capture the HTML source BEFORE we touch the DOM, so exportSnapshot can use
+// it as a clean template. We skip this in snapshot mode (it doesn't need to
+// re-export itself).
+if (!(EMBEDDED_SUBMISSIONS && EMBEDDED_SUBMISSIONS.length)) {
+  ORIGINAL_HTML_SOURCE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+}
+
+// If this is a snapshot file, switch to read-only mode and use the embedded data.
+if (EMBEDDED_SUBMISSIONS && EMBEDDED_SUBMISSIONS.length) {
+  state.snapshotMode = true;
+  state.snapshotMeta = SNAPSHOT_META;
+  state.submissions = EMBEDDED_SUBMISSIONS;
+}
+
+applyBrand();
+// Only load from localStorage if not in snapshot mode (snapshot data wins)
+if (!state.snapshotMode) loadState();
+
+// Set up hidden file input + page-level drag/drop (so dropping anywhere works)
+const input = document.createElement('input');
+input.type = 'file';
+input.id = 'hidden-file-input';
+input.style.display = 'none';
+input.multiple = true;
+input.accept = '.json,.csv,application/json,text/csv';
+input.addEventListener('change', e => handleFiles(e.target.files));
+document.body.appendChild(input);
+
+// Page-level drag/drop, so dropping anywhere on the page works
+// (Skipped in snapshot mode — read-only view, no ingest)
+if (!state.snapshotMode) {
+  window.addEventListener('dragover', e => { e.preventDefault(); });
+  window.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

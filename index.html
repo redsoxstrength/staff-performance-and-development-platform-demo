@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coach Performance & Development Platform</title>
+<script>
+(function(){
+  if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
+    var here = location.pathname.split('/').pop() || 'index.html';
+    location.replace('gate.html?next=' + encodeURIComponent(here + location.search));
+  }
+})();
+</script>
+<style>
+  :root {
+    --rs-red: #BD3039;
+    --rs-red-dark: #8C2128;
+    --rs-navy: #0C2340;
+    --bg: #F7F7F4;
+    --surface: #FFFFFF;
+    --text: #1A1A1A;
+    --text-2: #5F5E5A;
+    --text-3: #888780;
+    --border: #E2E0D8;
+    --r-lg: 14px;
+    --r-md: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header { background: var(--rs-navy); color: #fff; padding: 40px 24px 32px; }
+  header .wrap { max-width: 900px; margin: 0 auto; }
+  header .eyebrow { color: #C9D3E0; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 8px; }
+  header h1 { margin: 0 0 10px; font-size: 27px; }
+  header p { margin: 0; color: #D7DEE9; max-width: 620px; line-height: 1.5; }
+  main { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
+  h2.section { font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin: 36px 0 14px; }
+  h2.section:first-child { margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  a.card {
+    display: block; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 18px 20px; text-decoration: none; color: inherit;
+    transition: border-color .15s, transform .15s;
+  }
+  a.card:hover { border-color: var(--rs-red); transform: translateY(-1px); }
+  .card .tag {
+    display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--rs-red-dark); background: #FBEAEB;
+    border-radius: 20px; padding: 3px 10px; margin-bottom: 10px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 16.5px; color: var(--rs-navy); }
+  .card p { margin: 0; font-size: 13.5px; color: var(--text-2); line-height: 1.5; }
+  footer { max-width: 900px; margin: 0 auto; padding: 0 24px 48px; font-size: 12.5px; color: var(--text-3); line-height: 1.6; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Boston Red Sox · S&C Player Development</p>
+    <h1>Coach Performance & Development Platform</h1>
+    <p>A demo preview — layered access, personal and professional development on
+    parallel axes, weekly and monthly checkpoints, colleague 360 feedback, and
+    leadership dashboards. Names and identifying details below are placeholders.</p>
+  </div>
+</header>
+<main>
+  <h2 class="section">Platform</h2>
+  <div class="grid">
+    <a class="card" href="coach_platform_prototype.html">
+      <span class="tag">Demo</span>
+      <h3>Platform Prototype</h3>
+      <p>The full visual spec — login tile grid, coach dashboards, weekly/monthly
+      flows, spider plots, group views, glossary, scoring system, career tracks.</p>
+    </a>
+    <a class="card" href="coach_portal.html">
+      <span class="tag">Coach view</span>
+      <h3>Coach Portal</h3>
+      <p>A single coach's private view of their own data and submission history.</p>
+    </a>
+  </div>
+
+  <h2 class="section">Colleague 360 Feedback</h2>
+  <div class="grid">
+    <a class="card" href="coach_360_feedback_form.html">
+      <span class="tag">Form</span>
+      <h3>360 Feedback Form</h3>
+      <p>Reviewer-facing form for giving colleague development feedback.</p>
+    </a>
+    <a class="card" href="coach_360_dashboard.html">
+      <span class="tag">Leadership</span>
+      <h3>360 Dashboard</h3>
+      <p>Aggregates submissions per coach, keeps reviewers anonymous, gates
+      individual PDF release above a 3-reviewer threshold.</p>
+    </a>
+  </div>
+
+  <h2 class="section">Checkpoint</h2>
+  <div class="grid">
+    <a class="card" href="coach_checkpoint_form.html">
+      <span class="tag">Form</span>
+      <h3>Checkpoint Form</h3>
+      <p>Each coach's early-season self-review across personal wellbeing and
+      professional focus areas.</p>
+    </a>
+    <a class="card" href="coach_checkpoint_dashboard.html">
+      <span class="tag">Leadership</span>
+      <h3>Checkpoint Dashboard</h3>
+      <p>Leadership view of checkpoint submissions across the group.</p>
+    </a>
+  </div>
+</main>
+<footer>
+  Coach Performance &amp; Development Platform — Boston Red Sox S&amp;C Player Development. Preview build.
+</footer>
+</body>
+</html>

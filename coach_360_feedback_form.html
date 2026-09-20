@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
+    var here = location.pathname.split('/').pop() || 'index.html';
+    location.replace('gate.html?next=' + encodeURIComponent(here + location.search));
+  }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colleague Development Input</title>
+<style>
+:root {
+  --rs-red: #BD3039;
+  --rs-red-dark: #8C2128;
+  --rs-navy: #0C2340;
+  --rs-navy-light: #1A3357;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-mute: #888;
+  --line: #e5e7eb;
+  --line-soft: #f1f3f5;
+  --bg: #fafbfc;
+  --card: #ffffff;
+  --pill-bg: #f4f5f7;
+  --pill-hover: #ebedf0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-lift: 0 4px 12px rgba(12,35,64,0.10), 0 12px 28px rgba(12,35,64,0.08);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* TOPBAR */
+.topbar {
+  background: var(--rs-navy);
+  color: #fff;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 3px solid var(--rs-red);
+}
+.topbar .crest {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar .brand { font-size: 14px; letter-spacing: 0.3px; opacity: 0.95; }
+.topbar .brand b { letter-spacing: 0.5px; }
+.topbar .brand .sep { opacity: 0.5; margin: 0 6px; }
+
+/* SHELL — fluid width that scales aggressively with viewport.
+   Caps at 1200px so wide monitors get a comfortable but not absurd width. */
+.shell {
+  width: 100%;
+  max-width: min(1200px, 94%);
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 36px) clamp(14px, 2vw, 32px) 80px;
+}
+@media (max-width: 600px) {
+  .topbar { padding: 12px 16px; }
+}
+
+/* STAGE PROGRESS */
+.stage-bar { display: flex; gap: 6px; margin-bottom: 22px; }
+.stage-bar .pip {
+  flex: 1;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.stage-bar .pip.done { background: var(--rs-navy); }
+.stage-bar .pip.active { background: var(--rs-red); }
+
+/* CARDS — padding scales with viewport */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: clamp(20px, 3vw, 36px);
+  box-shadow: var(--shadow);
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: var(--rs-red);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+h1 { font-size: 26px; margin: 0 0 12px; color: var(--rs-navy); letter-spacing: -0.2px; }
+h2 { font-size: 18px; margin: 18px 0 8px; color: var(--rs-navy); letter-spacing: -0.2px; }
+h3 { font-size: 15px; margin: 0 0 6px; color: var(--ink); font-weight: 600; }
+p { margin: 0 0 14px; color: var(--ink-soft); }
+.muted { color: var(--ink-mute); font-size: 13px; }
+
+/* SAFETY COVENANT BOX */
+.covenant {
+  background: #EDF1F6;
+  border-left: 4px solid var(--rs-navy);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 18px;
+  margin: 16px 0 20px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+.covenant b { color: var(--rs-navy); }
+
+/* FORM FIELDS */
+.field { margin-bottom: 22px; }
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.field .hint {
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+  line-height: 1.55;
+}
+.field input[type=text], .field select {
+  width: 100%;
+  font-family: inherit;
+  font-size: 15px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+.field input[type=text]:focus, .field select:focus {
+  outline: none;
+  border-color: var(--rs-navy);
+  box-shadow: 0 0 0 3px rgba(12,35,64,0.10);
+}
+
+/* Textareas — applied to ALL textareas in the form (both .field and .q-block).
+   Generous height by default to encourage longer answers and let the writer see
+   what they have said as they go. Resizes vertical if they need more. */
+.shell textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 15px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  min-height: 220px;
+  resize: vertical;
+  line-height: 1.65;
+}
+.shell textarea.tall { min-height: 280px; }
+.shell textarea:focus {
+  outline: none;
+  border-color: var(--rs-navy);
+  box-shadow: 0 0 0 3px rgba(12,35,64,0.10);
+}
+
+/* Question block — two-column header / textarea layout */
+.q-block {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.q-block:last-of-type { border-bottom: none; padding-bottom: 0; }
+.q-block .q-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rs-navy);
+  margin-bottom: 4px;
+}
+.q-block .q-frame {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-style: italic;
+  margin-bottom: 10px;
+  line-height: 1.55;
+}
+
+/* Relationship pill row */
+.pill-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pill {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--pill-bg);
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.pill:hover { background: var(--pill-hover); }
+.pill.selected {
+  background: var(--rs-navy);
+  color: #fff;
+  border-color: var(--rs-navy);
+}
+
+/* Likert scale block — sits under each scored textarea.
+   1-5 pill row + anchor descriptions. Optional. */
+.scale-block {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--line-soft);
+  border-radius: 8px;
+}
+.scale-block .scale-prompt {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.scale-block .scale-prompt .scale-optional {
+  font-weight: 500;
+  color: var(--ink-mute);
+  font-size: 12px;
+  margin-left: 6px;
+}
+.scale-pills-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.scale-num-pill {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 42px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, transform 0.05s;
+}
+.scale-num-pill:hover { background: var(--pill-hover); border-color: var(--ink-mute); }
+.scale-num-pill:active { transform: translateY(1px); }
+.scale-num-pill.selected {
+  background: var(--rs-navy);
+  color: #fff;
+  border-color: var(--rs-navy);
+}
+.scale-anchors {
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-style: italic;
+  line-height: 1.5;
+}
+.scale-anchors b { color: var(--ink); font-style: normal; font-weight: 700; }
+
+/* NAV BUTTONS */
+.nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+.btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.05s;
+  border: none;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--rs-red); color: #fff; }
+.btn-primary:hover { background: var(--rs-red-dark); }
+.btn-primary:disabled { background: #c4a8aa; cursor: not-allowed; }
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover { background: var(--pill-bg); }
+.btn-link {
+  background: transparent;
+  color: var(--rs-navy);
+  border: none;
+  text-decoration: underline;
+  font-size: 13px;
+  padding: 6px 0;
+  cursor: pointer;
+}
+.btn-big { font-size: 16px; padding: 14px 28px; }
+
+.error-msg {
+  color: var(--rs-red);
+  font-size: 13px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* REVIEW SUMMARY */
+.summary-section { margin-bottom: 18px; }
+.summary-section h4 {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--rs-red);
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+.summary-row {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.summary-row b { color: var(--ink); font-weight: 600; }
+.summary-block {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  background: var(--line-soft);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.summary-empty {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  color: var(--ink-mute);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* CONFIRMATION */
+.confirm-state { text-align: center; padding: 20px 0; }
+.confirm-state .check {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: #2e7d32;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 16px;
+}
+
+/* DOWNLOAD CONFIRMATION CARD — shows the file that was saved */
+.download-confirm {
+  background: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 16px 0 20px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.download-confirm .dc-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.download-confirm .dc-text { font-size: 13px; color: #1B5E20; line-height: 1.55; }
+.download-confirm code {
+  display: inline-block;
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--ink);
+  margin-top: 4px;
+}
+
+/* STEP LIST — numbered, prominent, text-left */
+.step-list { text-align: left; margin: 20px 0; }
+.step-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.step-item:last-child { border-bottom: none; }
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--rs-red);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-item.critical .step-num { background: #ed8c00; }
+.step-text { font-size: 14px; line-height: 1.6; color: var(--ink); }
+.step-text .step-title { font-weight: 700; color: var(--rs-navy); margin-bottom: 4px; display: block; }
+.step-text .step-detail { color: var(--ink-soft); font-size: 13px; }
+.step-text code {
+  background: var(--line-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--ink);
+}
+.step-item.critical .step-text .step-title { color: #C76B00; }
+
+/* AUTOSAVE */
+.autosave {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: var(--rs-navy);
+  color: #fff;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lift);
+}
+.autosave.show { opacity: 0.95; }
+
+/* RESUME BANNER */
+.resume-banner {
+  background: #fff8e1;
+  border: 1px solid #f5c34b;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #6b4f0c;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.resume-banner button {
+  background: #6b4f0c;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="crest" id="brand-crest">
+    <svg width="36" height="36" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-label="Red Sox crest">
+      <circle cx="20" cy="20" r="18" fill="#ffffff" stroke="#0C2340" stroke-width="1.5"/>
+      <path d="M 7 13 Q 20 20 33 13" fill="none" stroke="#BD3039" stroke-width="1.5" stroke-dasharray="2 2"/>
+      <path d="M 7 27 Q 20 20 33 27" fill="none" stroke="#BD3039" stroke-width="1.5" stroke-dasharray="2 2"/>
+      <text x="20" y="26" font-family="Georgia, serif" font-size="20" font-weight="700" fill="#BD3039" text-anchor="middle">B</text>
+    </svg>
+  </div>
+  <div class="brand">
+    <b id="brand-name">Red Sox</b><span class="sep">·</span>
+    <span id="brand-dept">S&amp;C · Player Development</span><span class="sep">·</span>
+    <span>Colleague development input</span>
+  </div>
+</header>
+
+<div class="shell">
+  <div id="stage-bar" class="stage-bar"></div>
+  <div id="root"></div>
+</div>
+
+<div class="autosave" id="autosave">Saved</div>
+
+<script>
+//==============================================================================
+// CONFIG
+//==============================================================================
+const BRAND = {
+  org: 'Boston Red Sox',
+  orgShort: 'Red Sox',
+  orgLabel: 'RED SOX',
+  dept: 'S&C · Player Development',
+  deptShort: 'S&C',
+  app: 'Coach Performance & Development Platform',
+  primary:        '#BD3039',
+  primaryDark:    '#8C2128',
+  secondary:      '#0C2340',
+  secondaryLight: '#1A3357',
+  emailDomain: 'redsox.com',
+  emailSender: 'ecoleman@redsox.com',
+};
+
+//==============================================================================
+// BACKEND — auto-email + Sheet write on submit.
+// Paste the deployed Apps Script Web App URL here, and the form_key printed
+// by getFormKey() in the Apps Script editor. Leave BACKEND_URL empty to
+// disable the backend path and fall back to the JSON download + mailto flow.
+//==============================================================================
+const BACKEND_URL = ''; // e.g. 'https://script.google.com/macros/s/AKfycb.../exec'
+const FORM_KEY    = ''; // e.g. 'a1b2c3d4-...' (from getFormKey() in Apps Script)
+
+//==============================================================================
+// STAFF ROSTER — colleagues a reviewer can write feedback about.
+// Should match the platform's seed staff list. Update if staffing changes.
+//==============================================================================
+const STAFF = [
+  { id: 'marcus-webb',     name: 'Marcus Webb',      role: 'Department Director' },
+  { id: 'erin-coleman',   name: 'Erin Coleman',    role: 'Department Coordinator' },
+  { id: 'derek-simmons',  name: 'Derek Simmons',   role: 'Assistant Coordinator' },
+  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Salem Lead' },
+  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Salem Assistant' },
+  { id: 'austin-reed', name: 'Austin Reed',  role: 'Greenville Lead' },
+  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Greenville Assistant' },
+  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Portland Lead' },
+  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Portland Assistant' },
+  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Worcester Lead' },
+  { id: 'emily-turner', name: 'Emily Turner',  role: 'Worcester Assistant' },
+  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Florida Lead' },
+  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Florida Assistant' },
+  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Rehab Lead' },
+  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Rehab Assistant' },
+  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'Boston Coach 1' },
+  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'Boston Coach 2' },
+  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'Boston Rehab' },
+];
+
+const RELATIONSHIPS = [
+  { id: 'daily',        label: 'Daily',        hint: 'I work with them most days' },
+  { id: 'weekly',       label: 'Weekly',       hint: 'I work with them most weeks' },
+  { id: 'occasionally', label: 'Occasionally', hint: 'I work with them now and then' },
+];
+
+//==============================================================================
+// STATE
+//==============================================================================
+const STORAGE_KEY = 'coach_360_v1_draft';
+const state = {
+  stage: 0,
+  reviewer: { firstName: '', lastName: '', name: '', email: '' },
+  recipient: { coachId: '', name: '', role: '' },
+  relationship: '',
+  strengths: { forTeam: '', forMe: '' },
+  growth:    { forTeam: '', forMe: '' },
+  observedCoaching: { strengths: '', growthAreas: '' },
+  scores: {
+    strengthsTeam: null,
+    strengthsMe:   null,
+    growthTeam:    null,
+    growthMe:      null,
+    ocStrengths:   null,
+    ocGrowth:      null,
+  },
+  blindSpots: '',
+  acknowledgments: '',
+  submittedAt: null,
+  responseId: null,
+  deliveredVia: null,
+  downloadName: null,
+  _lastPayload: null,
+};
+if (typeof window !== 'undefined') window.state = state;
+
+// Stage order
+const STAGES = [
+  'welcome',
+  'identify',
+  'strengths',
+  'growth',
+  'observed-coaching',
+  'blindspots-acks',
+  'review',
+  'confirm'
+];
+
+//==============================================================================
+// PERSISTENCE
+//==============================================================================
+function saveDraft() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      stage: state.stage,
+      reviewer: state.reviewer,
+      recipient: state.recipient,
+      relationship: state.relationship,
+      strengths: state.strengths,
+      growth: state.growth,
+      observedCoaching: state.observedCoaching,
+      scores: state.scores,
+      blindSpots: state.blindSpots,
+      acknowledgments: state.acknowledgments,
+    }));
+    showAutosave();
+  } catch (e) {}
+}
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    Object.assign(state.reviewer, d.reviewer || {});
+    Object.assign(state.recipient, d.recipient || {});
+    state.relationship = d.relationship || '';
+    Object.assign(state.strengths, d.strengths || {});
+    Object.assign(state.growth, d.growth || {});
+    Object.assign(state.observedCoaching, d.observedCoaching || {});
+    Object.assign(state.scores, d.scores || {});
+    state.blindSpots = d.blindSpots || '';
+    state.acknowledgments = d.acknowledgments || '';
+    return (state.reviewer.firstName || state.reviewer.email || state.recipient.coachId);
+  } catch (e) { return false; }
+}
+function clearDraft() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+let autosaveTimer = null;
+function showAutosave() {
+  const el = document.getElementById('autosave');
+  if (!el) return;
+  el.classList.add('show');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => el.classList.remove('show'), 1200);
+}
+
+//==============================================================================
+// HELPERS
+//==============================================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function applyBrand() {
+  document.title = `${BRAND.orgShort} ${BRAND.deptShort} — Colleague development input`;
+  document.getElementById('brand-name').textContent = BRAND.orgShort;
+  document.getElementById('brand-dept').textContent = BRAND.dept;
+}
+function firstName(name) { return (name || '').split(/\s+/)[0] || ''; }
+
+//==============================================================================
+// LIKERT SCALES — two templates, used across the six scored questions.
+// Scores rate the reviewer's experience, not the colleague's ability.
+// Coaches see aggregated avg + range across reviewers (computed in dashboard).
+//==============================================================================
+const SCALE_CONSISTENCY = {
+  prompt: 'How consistently do you experience this?',
+  anchors: '<b>1</b> rarely &middot; <b>3</b> sometimes &middot; <b>5</b> consistently',
+};
+const SCALE_IMPACT = {
+  prompt: 'How much would more of this benefit the team or your work?',
+  anchors: '<b>1</b> marginal &middot; <b>3</b> moderate &middot; <b>5</b> significant uplift',
+};
+const SCALE_OBSERVED_CONSISTENCY = {
+  prompt: 'How consistently do you see this in their coaching?',
+  anchors: '<b>1</b> rarely &middot; <b>3</b> sometimes &middot; <b>5</b> consistently',
+};
+const SCALE_OBSERVED_IMPACT = {
+  prompt: 'How much would fine-tuning this benefit their player work?',
+  anchors: '<b>1</b> marginal &middot; <b>3</b> moderate &middot; <b>5</b> significant uplift',
+};
+
+function renderScale(scoreKey, scaleTemplate) {
+  const current = state.scores[scoreKey];
+  return `
+    <div class="scale-block">
+      <div class="scale-prompt">
+        ${escapeHtml(scaleTemplate.prompt)}
+        <span class="scale-optional">(optional)</span>
+      </div>
+      <div class="scale-pills-row" role="radiogroup" aria-label="${escapeHtml(scaleTemplate.prompt)}">
+        ${[1, 2, 3, 4, 5].map(v => `
+          <button type="button" class="scale-num-pill ${current === v ? 'selected' : ''}" data-val="${v}" data-key="${escapeHtml(scoreKey)}" onclick="setScore('${escapeHtml(scoreKey)}', ${v})" aria-checked="${current === v}">${v}</button>
+        `).join('')}
+      </div>
+      <div class="scale-anchors">${scaleTemplate.anchors}</div>
+    </div>
+  `;
+}
+
+function setScore(key, val) {
+  // Toggle — clicking the selected pill clears it (lets a reviewer un-score)
+  state.scores[key] = (state.scores[key] === val) ? null : val;
+  // Update visual selection state without re-rendering the whole page
+  document.querySelectorAll(`.scale-num-pill[data-key="${key}"]`).forEach(p => {
+    p.classList.toggle('selected', Number(p.dataset.val) === state.scores[key]);
+    p.setAttribute('aria-checked', Number(p.dataset.val) === state.scores[key]);
+  });
+  saveDraft();
+}
+
+//==============================================================================
+// STAGE RENDERERS
+//==============================================================================
+function renderWelcome() {
+  return `
+    <div class="card">
+      <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · Colleague development input</div>
+      <h1>Support a colleague's ongoing growth and development</h1>
+      <p>
+        This form is a way to contribute to a colleague's ongoing performance,
+        growth, and development. The focus is constructive: what they do well
+        that you want to see continued, what they could do more of for the
+        team and for your role, and any awareness or acknowledgment that
+        would help them develop further.
+      </p>
+
+      <div class="covenant">
+        <b>How this works.</b> The colleague whose development you are supporting
+        will receive a personal PDF summary of the input they received, generated
+        by the Coordinator. The colleague will <b>never see who said what</b>;
+        their report groups comments by area, with no reviewer attribution. The
+        Coordinator does see who submitted each piece of input and may follow up
+        with you privately for additional context or clarification. The
+        Coordinator acts as a trusted filter between you and the colleague. This
+        input will <b>never</b> be used in performance reviews, employment
+        decisions, or HR processes.
+      </div>
+
+      <p class="muted">
+        Estimated time: 10&ndash;15 minutes. Your draft saves automatically so you
+        can close the tab and come back later. You support one colleague's
+        development per submission; come back to the link to support another
+        colleague next time.
+      </p>
+
+      <div class="nav-row">
+        <span class="muted" style="font-size: 12px;">Best done in a single focused sitting.</span>
+        <button class="btn btn-primary" onclick="goNext()">Begin</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderIdentify() {
+  const r = state.reviewer;
+  const rec = state.recipient;
+  return `
+    <div class="card">
+      <div class="eyebrow">Step 1 of 6</div>
+      <h1>You and the colleague you're supporting</h1>
+      <p>Your name and email so the Coordinator can follow up if anything needs clarifying. Your identity is never shared with the colleague whose development you're supporting.</p>
+
+      <h2>You</h2>
+
+      <div class="field" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+          <label for="f-first">First name</label>
+          <input type="text" id="f-first" value="${escapeHtml(r.firstName)}" oninput="onReviewerName()" autocomplete="given-name" />
+        </div>
+        <div>
+          <label for="f-last">Last name</label>
+          <input type="text" id="f-last" value="${escapeHtml(r.lastName)}" oninput="onReviewerName()" autocomplete="family-name" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input type="text" id="f-email" value="${escapeHtml(r.email)}" oninput="state.reviewer.email = this.value.trim(); saveDraft();" placeholder="you@${escapeHtml(BRAND.emailDomain)}" autocomplete="email" inputmode="email" />
+      </div>
+
+      <h2>The colleague you're supporting</h2>
+
+      <div class="field">
+        <label for="f-recipient">Choose the colleague whose development you're supporting</label>
+        <select id="f-recipient" onchange="onRecipientChange(this.value)">
+          <option value="">Select a colleague&hellip;</option>
+          ${STAFF.map(s => `<option value="${s.id}" ${rec.coachId === s.id ? 'selected' : ''}>${escapeHtml(s.name)} &mdash; ${escapeHtml(s.role)}</option>`).join('')}
+        </select>
+        <div class="hint">One colleague per submission. Come back to the link to support another colleague's development next time.</div>
+      </div>
+
+      <div class="field">
+        <label>How often do you work directly with this colleague? (optional)</label>
+        <div class="hint">Helps the Coordinator interpret your input. Not shared with the colleague.</div>
+        <div class="pill-row">
+          ${RELATIONSHIPS.map(rel => `
+            <button type="button" class="pill ${state.relationship === rel.id ? 'selected' : ''}" onclick="setRelationship('${rel.id}')" title="${escapeHtml(rel.hint)}">${escapeHtml(rel.label)}</button>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrev()">Back</button>
+        <button class="btn btn-primary" onclick="onIdentifyNext()">Continue</button>
+      </div>
+      <div id="identify-err" class="error-msg" style="display: none;"></div>
+    </div>
+  `;
+}
+
+function onReviewerName() {
+  state.reviewer.firstName = (document.getElementById('f-first')?.value || '').trim();
+  state.reviewer.lastName  = (document.getElementById('f-last')?.value || '').trim();
+  state.reviewer.name = (state.reviewer.firstName + ' ' + state.reviewer.lastName).trim();
+  saveDraft();
+}
+function onRecipientChange(id) {
+  const s = STAFF.find(x => x.id === id);
+  state.recipient = s ? { coachId: s.id, name: s.name, role: s.role } : { coachId: '', name: '', role: '' };
+  saveDraft();
+}
+function setRelationship(rel) {
+  state.relationship = state.relationship === rel ? '' : rel; // toggle
+  saveDraft();
+  render();
+}
+function onIdentifyNext() {
+  const err = document.getElementById('identify-err');
+  err.style.display = 'none';
+  const r = state.reviewer;
+  if (!r.firstName || !r.lastName) { err.textContent = 'Please enter your first and last name.'; err.style.display = 'block'; return; }
+  if (!r.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email)) { err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return; }
+  if (!state.recipient.coachId) { err.textContent = 'Please select the colleague whose development you are supporting.'; err.style.display = 'block'; return; }
+  goNext();
+}
+
+function renderStrengths() {
+  const name = state.recipient.name || 'this colleague';
+  const first = firstName(name);
+  return `
+    <div class="card">
+      <div class="eyebrow">Step 2 of 6 · Strengths</div>
+      <h1>What ${escapeHtml(first)} does best</h1>
+      <p>Two questions, both about what is working. Be specific where you can &mdash; concrete examples land better than general praise.</p>
+
+      <div class="q-block">
+        <div class="q-title">What does ${escapeHtml(first)} do best for the team?</div>
+        <div class="q-frame">Think across technical skills and interpersonal skills. What does this colleague bring to the staff and to player support that you would want to see continued?</div>
+        <textarea id="q-strength-team" class="tall" oninput="state.strengths.forTeam = this.value; saveDraft();" placeholder="A few sentences. Examples help.">${escapeHtml(state.strengths.forTeam)}</textarea>
+        ${renderScale('strengthsTeam', SCALE_CONSISTENCY)}
+      </div>
+
+      <div class="q-block">
+        <div class="q-title">What do they do best that specifically helps you execute in your own role?</div>
+        <div class="q-frame">Where does their work directly support yours? Could be a specific behavior, a technical capability, a way they show up. Keep this grounded in your day-to-day.</div>
+        <textarea id="q-strength-me" class="tall" oninput="state.strengths.forMe = this.value; saveDraft();" placeholder="What helps you when they're at their best?">${escapeHtml(state.strengths.forMe)}</textarea>
+        ${renderScale('strengthsMe', SCALE_CONSISTENCY)}
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrev()">Back</button>
+        <button class="btn btn-primary" onclick="onStrengthsNext()">Continue</button>
+      </div>
+      <div id="strengths-err" class="error-msg" style="display: none;"></div>
+    </div>
+  `;
+}
+function onStrengthsNext() {
+  const err = document.getElementById('strengths-err');
+  err.style.display = 'none';
+  if (!state.strengths.forTeam.trim() && !state.strengths.forMe.trim()) {
+    err.textContent = 'Please answer at least one of the strength questions before continuing.';
+    err.style.display = 'block';
+    return;
+  }
+  goNext();
+}
+
+function renderGrowth() {
+  const name = state.recipient.name || 'this colleague';
+  const first = firstName(name);
+  return `
+    <div class="card">
+      <div class="eyebrow">Step 3 of 6 · Growth</div>
+      <h1>What ${escapeHtml(first)} could do more of</h1>
+      <p>Two questions framed as <i>more of</i>, never <i>instead of</i>. The goal is constructive growth direction, not criticism.</p>
+
+      <div class="q-block">
+        <div class="q-title">What could ${escapeHtml(first)} do more of for the team?</div>
+        <div class="q-frame">Technical or interpersonal. What would unlock more value for the staff or player support if they leaned into it more?</div>
+        <textarea id="q-growth-team" class="tall" oninput="state.growth.forTeam = this.value; saveDraft();" placeholder="Something they're already capable of, that there could be more of.">${escapeHtml(state.growth.forTeam)}</textarea>
+        ${renderScale('growthTeam', SCALE_IMPACT)}
+      </div>
+
+      <div class="q-block">
+        <div class="q-title">What could they do to assist you further in your own role?</div>
+        <div class="q-frame">Specific to your day-to-day. What would help you do your job better? Practical and direct is fine.</div>
+        <textarea id="q-growth-me" class="tall" oninput="state.growth.forMe = this.value; saveDraft();" placeholder="What's the assist you wish you had more of?">${escapeHtml(state.growth.forMe)}</textarea>
+        ${renderScale('growthMe', SCALE_IMPACT)}
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrev()">Back</button>
+        <button class="btn btn-primary" onclick="onGrowthNext()">Continue</button>
+      </div>
+      <div id="growth-err" class="error-msg" style="display: none;"></div>
+    </div>
+  `;
+}
+function onGrowthNext() {
+  const err = document.getElementById('growth-err');
+  err.style.display = 'none';
+  if (!state.growth.forTeam.trim() && !state.growth.forMe.trim()) {
+    err.textContent = 'Please answer at least one of the growth questions before continuing.';
+    err.style.display = 'block';
+    return;
+  }
+  goNext();
+}
+
+function renderObservedCoaching() {
+  const name = state.recipient.name || 'this colleague';
+  const first = firstName(name);
+  return `
+    <div class="card">
+      <div class="eyebrow">Step 4 of 6 &middot; Observed coaching <span style="color: var(--ink-mute); font-weight: 500;">(optional)</span></div>
+      <h1>${escapeHtml(first)} with players</h1>
+      <p>If you have observed ${escapeHtml(first)} coaching or interacting with players, this is the space for that signal. <b>If you have not had the chance to observe them in those moments, skip this section entirely.</b> Both questions are optional.</p>
+
+      <div class="covenant">
+        <b>Scope.</b> This section is specifically about coaching delivery and player interactions, including 1:1 work and group settings (warm-ups, sessions, briefings, meetings with players). Different from the broader "team" and "you in your role" questions earlier.
+      </div>
+
+      <div class="q-block">
+        <div class="q-title">Observed strengths in coaching and player interactions</div>
+        <div class="q-frame">What have you seen ${escapeHtml(first)} do well when working with players? Could be 1:1, in a group, in a session, in a moment of pressure. Specific examples are most useful when they come to mind.</div>
+        <textarea id="q-oc-strengths" class="tall" oninput="state.observedCoaching.strengths = this.value; saveDraft();" placeholder="Optional. Skip if you have not directly observed their coaching or player interactions.">${escapeHtml(state.observedCoaching.strengths)}</textarea>
+        ${renderScale('ocStrengths', SCALE_OBSERVED_CONSISTENCY)}
+      </div>
+
+      <div class="q-block">
+        <div class="q-title">Observed areas to fine-tune in coaching and player interactions</div>
+        <div class="q-frame">What could ${escapeHtml(first)} sharpen in how they coach or interact with players? Could be a tactical thing (cue choice, session pacing), an interpersonal thing (tone in a hard moment, reading the room), or anything you have noticed across 1:1 and group contexts.</div>
+        <textarea id="q-oc-growth" class="tall" oninput="state.observedCoaching.growthAreas = this.value; saveDraft();" placeholder="Optional. Frame as a fine-tune, not a fix.">${escapeHtml(state.observedCoaching.growthAreas)}</textarea>
+        ${renderScale('ocGrowth', SCALE_OBSERVED_IMPACT)}
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrev()">Back</button>
+        <button class="btn btn-primary" onclick="goNext()">Continue</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderBlindspotsAcks() {
+  const name = state.recipient.name || 'this colleague';
+  const first = firstName(name);
+  return `
+    <div class="card">
+      <div class="eyebrow">Step 5 of 6 · Blind spots &amp; acknowledgments</div>
+      <h1>Awareness and recognition</h1>
+      <p>Two short open prompts. Both are optional. Skip if nothing comes to mind.</p>
+
+      <div class="q-block">
+        <div class="q-title">Blind spots ${escapeHtml(first)} may not see</div>
+        <div class="q-frame">Awareness, not criticism. Something they may not be aware of that, if seen, could help them grow. The Coordinator will frame this carefully when it reaches the coach.</div>
+        <textarea id="q-blindspots" class="tall" oninput="state.blindSpots = this.value; saveDraft();" placeholder="Optional. What might they be missing from where they stand?">${escapeHtml(state.blindSpots)}</textarea>
+      </div>
+
+      <div class="q-block">
+        <div class="q-title">Specific contributions worth acknowledging</div>
+        <div class="q-frame">Is there a specific contribution to team function, staff support, or player support that you want to make sure is recognized? Often the things that quietly hold a team together never get said out loud.</div>
+        <textarea id="q-acks" class="tall" oninput="state.acknowledgments = this.value; saveDraft();" placeholder="Optional. Anything that should be named explicitly.">${escapeHtml(state.acknowledgments)}</textarea>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrev()">Back</button>
+        <button class="btn btn-primary" onclick="goNext()">Continue to review</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderReview() {
+  const name = state.recipient.name || 'this colleague';
+  const blockOrEmpty = (text) => text && text.trim()
+    ? `<div class="summary-block">&ldquo;${escapeHtml(text)}&rdquo;</div>`
+    : `<div class="summary-empty">Not answered.</div>`;
+  const scoreTag = (key) => state.scores[key] != null
+    ? `<span style="margin-left: 8px; padding: 2px 8px; background: var(--rs-navy); color: #fff; border-radius: 100px; font-size: 11px; font-weight: 700;">${state.scores[key]}/5</span>`
+    : `<span style="margin-left: 8px; color: var(--ink-mute); font-size: 11px; font-style: italic;">no score</span>`;
+  const relLabel = (RELATIONSHIPS.find(r => r.id === state.relationship)?.label) || 'Not specified';
+
+  return `
+    <div class="card">
+      <div class="eyebrow">Step 6 of 6 · Review &amp; submit</div>
+      <h1>Read it back before you submit</h1>
+      <p>Last look. Hit Back to revise anything.</p>
+
+      <div class="summary-section">
+        <h4>About</h4>
+        <div class="summary-row"><b>You</b><span>${escapeHtml(state.reviewer.name)} &middot; ${escapeHtml(state.reviewer.email)}</span></div>
+        <div class="summary-row"><b>Colleague</b><span>${escapeHtml(state.recipient.name)} &middot; ${escapeHtml(state.recipient.role)}</span></div>
+        <div class="summary-row"><b>Work together</b><span>${escapeHtml(relLabel)}</span></div>
+      </div>
+
+      <div class="summary-section">
+        <h4>Strengths &mdash; for the team ${scoreTag('strengthsTeam')}</h4>
+        ${blockOrEmpty(state.strengths.forTeam)}
+        <h4>Strengths &mdash; for you in your role ${scoreTag('strengthsMe')}</h4>
+        ${blockOrEmpty(state.strengths.forMe)}
+      </div>
+
+      <div class="summary-section">
+        <h4>Growth &mdash; for the team ${scoreTag('growthTeam')}</h4>
+        ${blockOrEmpty(state.growth.forTeam)}
+        <h4>Growth &mdash; for you in your role ${scoreTag('growthMe')}</h4>
+        ${blockOrEmpty(state.growth.forMe)}
+      </div>
+
+      <div class="summary-section">
+        <h4>Observed coaching &mdash; strengths with players ${scoreTag('ocStrengths')}</h4>
+        ${blockOrEmpty(state.observedCoaching.strengths)}
+        <h4>Observed coaching &mdash; areas to fine-tune ${scoreTag('ocGrowth')}</h4>
+        ${blockOrEmpty(state.observedCoaching.growthAreas)}
+      </div>
+
+      <div class="summary-section">
+        <h4>Blind spots</h4>
+        ${blockOrEmpty(state.blindSpots)}
+        <h4>Acknowledgments</h4>
+        ${blockOrEmpty(state.acknowledgments)}
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goPrev()">Back</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="onSubmit()">Submit input</button>
+      </div>
+      <div id="submit-status" class="muted" style="margin-top: 12px;"></div>
+    </div>
+  `;
+}
+
+function renderConfirm() {
+  const id = state.reviewer;
+  const recipient = state.recipient;
+
+  // Backend-delivered path: everything was sent server-side. No manual steps.
+  if (state.deliveredVia === 'backend') {
+    return `
+      <div class="card confirm-state">
+        <div class="check">✓</div>
+        <h1>Sent &mdash; thank you</h1>
+        <p>Thanks, ${escapeHtml(firstName(id.name))}. Your input toward ${escapeHtml(firstName(recipient.name))}'s development has been securely delivered to the Coordinator. No further action needed.</p>
+
+        <div style="margin-top: 16px; padding: 14px 16px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; color: #1b5e20; font-size: 14px; text-align: left;">
+          <b>What happens next</b>
+          <ul style="margin: 8px 0 0; padding-left: 22px; line-height: 1.6;">
+            <li>The Coordinator receives your input as an email with the JSON attached.</li>
+            <li>A copy is stored in the department's secure Sheet.</li>
+            <li>${escapeHtml(firstName(recipient.name))} sees only aggregated themes once 3+ colleagues have contributed. Your name is never shown to them.</li>
+          </ul>
+        </div>
+
+        <p class="muted" style="margin-top: 20px; font-size: 12px;">
+          Submitted ${escapeHtml(state.submittedAt)} &middot; Response ID <code>${escapeHtml(state.responseId)}</code>
+        </p>
+
+        <div style="margin-top: 22px;">
+          <button class="btn btn-primary" onclick="newSubmission()">Support another colleague's development</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Fallback path: backend was unreachable or unconfigured. Original download +
+  // mailto flow kicks in so the input is not lost.
+  return `
+    <div class="card confirm-state">
+      <div class="check">✓</div>
+      <h1>Almost there &mdash; three steps to finish</h1>
+      <p>Thanks, ${escapeHtml(firstName(id.name))}. Your input toward ${escapeHtml(firstName(recipient.name))}'s development has been saved as a file on your computer. Now follow these three steps to send it to the Coordinator.</p>
+
+      <div style="margin: 10px 0 20px; padding: 10px 14px; background: #fff4e5; border: 1px solid #ffcc80; border-radius: 6px; color: #6b4a00; font-size: 13px; text-align: left;">
+        Auto-delivery could not reach the Coordinator this time. Follow the three steps below so nothing is lost.
+      </div>
+
+      <div class="download-confirm">
+        <div class="dc-icon">📄</div>
+        <div class="dc-text">
+          <b>Your file has been saved to your Downloads folder:</b>
+          <br><code>${escapeHtml(state.downloadName || 'development-input.json')}</code>
+        </div>
+      </div>
+
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <span class="step-title">Click the email button below</span>
+            <span class="step-detail">Your default mail app will open with the message pre-filled to the Coordinator. Subject and body are already written for you.</span>
+          </div>
+        </div>
+        <div class="step-item critical">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <span class="step-title">Attach the JSON file manually from your Downloads folder</span>
+            <span class="step-detail">The file <code>${escapeHtml(state.downloadName || 'development-input.json')}</code> does <b>not</b> attach automatically. You must add it as an attachment yourself before sending. The Coordinator needs this file to import your input into the dashboard.</span>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <span class="step-title">Send the email</span>
+            <span class="step-detail">That is it. The Coordinator will reach out if anything needs clarifying.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin: 24px 0;">
+        <button class="btn btn-primary btn-big" onclick="emailToCoordinator()">Open pre-filled email to Coordinator</button>
+      </div>
+
+      <div style="margin-top: 18px; padding: 14px 16px; background: var(--line-soft); border-radius: 8px; text-align: left; font-size: 13px; color: var(--ink-soft);">
+        <b style="color: var(--ink);">If the email button does not work in your mail client:</b>
+        <ol style="margin: 8px 0 0; padding-left: 22px; line-height: 1.7;">
+          <li>Start a new message manually to <a href="mailto:${escapeHtml(BRAND.emailSender)}">${escapeHtml(BRAND.emailSender)}</a></li>
+          <li>Subject: <i>Development input &mdash; supporting ${escapeHtml(recipient.name)}</i></li>
+          <li>Attach the file <code>${escapeHtml(state.downloadName || 'development-input.json')}</code> from your Downloads folder, then send</li>
+        </ol>
+        <div style="margin-top: 10px;">
+          <button class="btn btn-link" onclick="downloadAgain()">Re-download the file</button>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top: 20px; font-size: 12px;">
+        Submitted ${escapeHtml(state.submittedAt)} &middot; Response ID <code>${escapeHtml(state.responseId)}</code>
+      </p>
+
+      <div style="margin-top: 22px;">
+        <button class="btn btn-ghost" onclick="newSubmission()">Support another colleague's development</button>
+      </div>
+    </div>
+  `;
+}
+
+function downloadAgain() {
+  if (!state._lastPayload) return;
+  downloadJson(state._lastPayload, state.downloadName);
+}
+
+function newSubmission() {
+  // Reset everything except reviewer identity (so they don't have to re-enter)
+  const keepReviewer = { ...state.reviewer };
+  clearDraft();
+  state.stage = 1; // jump straight to identify step
+  state.reviewer = keepReviewer;
+  state.recipient = { coachId: '', name: '', role: '' };
+  state.relationship = '';
+  state.strengths = { forTeam: '', forMe: '' };
+  state.growth = { forTeam: '', forMe: '' };
+  state.observedCoaching = { strengths: '', growthAreas: '' };
+  state.scores = { strengthsTeam: null, strengthsMe: null, growthTeam: null, growthMe: null, ocStrengths: null, ocGrowth: null };
+  state.blindSpots = '';
+  state.acknowledgments = '';
+  state.submittedAt = null;
+  state.responseId = null;
+  state.deliveredVia = null;
+  state._lastPayload = null;
+  state.downloadName = null;
+  render();
+}
+
+//==============================================================================
+// NAVIGATION
+//==============================================================================
+function goNext() {
+  if (state.stage < STAGES.length - 1) {
+    state.stage++;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    saveDraft();
+  }
+}
+function goPrev() {
+  if (state.stage > 0) {
+    state.stage--;
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    saveDraft();
+  }
+}
+
+//==============================================================================
+// SUBMIT
+//==============================================================================
+function buildPayload() {
+  const responseId = `360-${state.recipient.coachId || 'unknown'}-${Date.now().toString(36)}`;
+  return {
+    schemaVersion: 1,
+    kind: '360',
+    responseId,
+    submittedAt: new Date().toISOString(),
+    reviewer: {
+      firstName: state.reviewer.firstName,
+      lastName: state.reviewer.lastName,
+      name: state.reviewer.name,
+      email: state.reviewer.email,
+    },
+    recipient: {
+      coachId: state.recipient.coachId,
+      name: state.recipient.name,
+      role: state.recipient.role,
+    },
+    relationship: state.relationship || null,
+    feedback: {
+      strengths: {
+        forTeam: state.strengths.forTeam || '',
+        forMe:   state.strengths.forMe   || '',
+      },
+      growth: {
+        forTeam: state.growth.forTeam || '',
+        forMe:   state.growth.forMe   || '',
+      },
+      observedCoaching: {
+        strengths:   state.observedCoaching.strengths   || '',
+        growthAreas: state.observedCoaching.growthAreas || '',
+      },
+      scores: {
+        strengthsTeam: state.scores.strengthsTeam,
+        strengthsMe:   state.scores.strengthsMe,
+        growthTeam:    state.scores.growthTeam,
+        growthMe:      state.scores.growthMe,
+        ocStrengths:   state.scores.ocStrengths,
+        ocGrowth:      state.scores.ocGrowth,
+      },
+      blindSpots: state.blindSpots || '',
+      acknowledgments: state.acknowledgments || '',
+    },
+    brand: BRAND.org,
+  };
+}
+
+function downloadJson(payload, name) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
+}
+
+async function onSubmit() {
+  const btn = document.getElementById('submit-btn');
+  const status = document.getElementById('submit-status');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  if (status) status.textContent = '';
+
+  const payload = buildPayload();
+  state._lastPayload = payload;
+  const safeRec = (payload.recipient.coachId || 'unknown').replace(/[^a-z0-9]+/gi, '-');
+  const safeRev = (state.reviewer.email || 'unknown').split('@')[0].replace(/[^a-z0-9]+/gi, '-');
+  const filename = `360_${safeRec}_from-${safeRev}_${new Date().toISOString().slice(0,10)}.json`;
+  state.downloadName = filename;
+
+  let delivered = null;
+
+  // Try the backend first — auto-emails the Coordinator with the JSON attached,
+  // and writes a durable row to the Sheet. Falls back to the local JSON download
+  // + mailto flow if the backend is unreachable or misconfigured, so no
+  // submission is ever fully lost.
+  if (BACKEND_URL && BACKEND_URL.startsWith('http') && FORM_KEY) {
+    try {
+      if (status) status.textContent = 'Sending securely to the Coordinator…';
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        mode: 'cors',
+        // text/plain avoids a CORS preflight; Apps Script accepts the body as-is.
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'submit_feedback_form',
+          form_key: FORM_KEY,
+          form_type: '360',
+          submission: payload
+        }),
+        redirect: 'follow'
+      });
+      if (res.ok) {
+        const txt = await res.text();
+        let j = null;
+        try { j = JSON.parse(txt); } catch (_) {}
+        if (j && j.ok) delivered = 'backend';
+      }
+    } catch (e) {
+      console.warn('Backend send failed, falling back to JSON download', e);
+    }
+  }
+
+  if (!delivered) {
+    // Fallback: local JSON download so the reviewer can email it manually.
+    downloadJson(payload, filename);
+    delivered = 'json';
+  }
+
+  state.submittedAt = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+  state.responseId = payload.responseId;
+  state.deliveredVia = delivered;
+
+  // Clear the draft now that it's been submitted successfully.
+  clearDraft();
+
+  state.stage = STAGES.length - 1;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function buildEmailBody(payload) {
+  const r = state.reviewer;
+  const rec = state.recipient;
+  const fb = payload.feedback;
+  const lines = [
+    `Hi Simon,`, ``,
+    `[ Before sending: please attach the file "${state.downloadName || 'development-input.json'}" from your Downloads folder. It is required for the Coordinator to import this input into the dashboard. ]`, ``,
+    `Reviewer:     ${r.name} <${r.email}>`,
+    `Supporting:   ${rec.name} (${rec.role})`,
+    `Relationship: ${state.relationship || 'not specified'}`,
+    `Response ID: ${payload.responseId}`, ``,
+    `(Plain-text backup of the JSON below, in case the attachment didn't come through.)`, ``,
+    `---BEGIN JSON---`,
+    JSON.stringify(payload, null, 2),
+    `---END JSON---`, ``,
+    `Thanks,`, `${r.name}`,
+  ];
+  return lines.join('\n');
+}
+
+function emailToCoordinator() {
+  const payload = state._lastPayload;
+  if (!payload) {
+    alert('Your responses are no longer in memory. Re-download the file and email it manually to ' + BRAND.emailSender);
+    return;
+  }
+  const subject = `Development input — supporting ${state.recipient.name}`;
+  const body = buildEmailBody(payload);
+  const mailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if (mailto.length > 1900) {
+    const shortBody = body.split('---BEGIN JSON---')[0] + '\n(Attachment was too large to inline. The JSON file is attached.)\n\nThanks,\n' + state.reviewer.name;
+    const shortMailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
+    window.location.href = shortMailto;
+  } else {
+    window.location.href = mailto;
+  }
+}
+
+//==============================================================================
+// MAIN RENDER
+//==============================================================================
+function renderStageBar() {
+  // Welcome and confirm are not counted as steps
+  const numSteps = STAGES.length - 2;
+  const currentStep = state.stage === 0 ? 0 : (state.stage === STAGES.length - 1 ? numSteps + 1 : state.stage);
+  const pips = [];
+  for (let i = 1; i <= numSteps; i++) {
+    let cls = '';
+    if (i < currentStep) cls = 'done';
+    else if (i === currentStep) cls = 'active';
+    pips.push(`<div class="pip ${cls}"></div>`);
+  }
+  document.getElementById('stage-bar').innerHTML = pips.join('');
+}
+
+function render() {
+  const stageKey = STAGES[state.stage];
+  let html = '';
+  if (stageKey === 'welcome')          html = renderWelcome();
+  else if (stageKey === 'identify')    html = renderIdentify();
+  else if (stageKey === 'strengths')   html = renderStrengths();
+  else if (stageKey === 'growth')      html = renderGrowth();
+  else if (stageKey === 'observed-coaching') html = renderObservedCoaching();
+  else if (stageKey === 'blindspots-acks') html = renderBlindspotsAcks();
+  else if (stageKey === 'review')      html = renderReview();
+  else if (stageKey === 'confirm')     html = renderConfirm();
+  document.getElementById('root').innerHTML = html;
+  renderStageBar();
+}
+
+//==============================================================================
+// INIT
+//==============================================================================
+if (typeof window !== 'undefined') window.state = state;
+
+applyBrand();
+
+const hadDraft = loadDraft();
+if (hadDraft) {
+  const banner = document.createElement('div');
+  banner.className = 'resume-banner';
+  banner.innerHTML = `
+    <span><b>Welcome back.</b> We found a draft in progress &mdash; pick up where you left off?</span>
+    <div>
+      <button onclick="this.parentElement.parentElement.remove(); render();">Resume</button>
+      <button onclick="if(confirm('Discard the saved draft and start over?')) { clearDraft(); location.reload(); }" style="background: transparent; color: #6b4f0c; border: 1px solid #6b4f0c; margin-left: 6px;">Start over</button>
+    </div>
+  `;
+  document.querySelector('.shell').insertBefore(banner, document.getElementById('stage-bar'));
+}
+render();
+</script>
+</body>
+</html>
