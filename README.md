@@ -97,7 +97,6 @@ icon-512.png, icon-192.png,
 icon-180.png, favicon-32.png,
 favicon-16.png                       <-- shared app icon (S&C logo), all sizes
 manifest-*.json                      <-- one per page, for "install as app" (see above)
-sw.js                                <-- minimal service worker, required for installability
 ```
 
 This is a trimmed set — just what's needed for the interactive demo to run
@@ -106,6 +105,25 @@ PDFs aren't included here; ask Simon if you need those too.
 
 ## Recent changes in this build
 
+- **Fixed: forced dark mode and a tap "freeze" on iPhone.** A tester found
+  that on iPhone (not on laptop) the platform prototype re-themed itself
+  dark to match the phone's system appearance, and that tapping buttons
+  after the first one would freeze. Both are fixed:
+  - Every page now sets `color-scheme: light` (in the CSS and as a
+    `<meta>` tag), and the platform prototype's old
+    `prefers-color-scheme: dark` override has been removed, so every page
+    stays in its light theme regardless of the phone/OS dark-mode setting.
+  - The service worker (`sw.js`) has been removed. It only existed for a
+    marginal desktop "install as app" nicety, and iOS Safari's background
+    handling of an active service worker is the likely cause of the tap
+    freeze (Chrome/Edge desktop installs work fine without one). Every
+    page now actively unregisters any leftover service-worker registration
+    a phone/browser may have picked up from the earlier build, rather than
+    registering a new one — if a phone had already added a page to its
+    home screen from the previous package, opening it once (in the
+    browser or from the home-screen icon) should clean that up. If it
+    doesn't seem to take right away, removing the home-screen icon and
+    re-adding it forces a completely fresh copy.
 - **Every page can now be installed as an app**, using the S&C logo as its icon
   — see "Installing a page as an app" above.
 - **Added a demo-only "All Tools" nav link.** Every page now has a small fixed

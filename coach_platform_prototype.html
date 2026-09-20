@@ -10,10 +10,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Platform Demo">
 <script>
+// Service workers are intentionally NOT used in this build (see README) --
+// iOS Safari's background-suspend handling for an active service worker
+// was the likely cause of the tap/button "freeze" reported on iPhone.
+// This just cleans up any registration a phone/browser may already have
+// picked up from an earlier version of this package; it does not register
+// a new one.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    regs.forEach(function(reg) { reg.unregister(); });
+  }).catch(function(){});
 }
 </script>
 <script>
@@ -36,11 +42,13 @@ function roleTeamLabel(p) {
 </script>
 
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0C2340">
 <title>Red Sox S&C — Coach Performance & Development Platform (prototype)</title>
 <style>
   :root {
+    color-scheme: light;
     --rs-red: #BD3039;
     --rs-red-dark: #8C2128;
     --rs-navy: #0C2340;
@@ -69,24 +77,10 @@ function roleTeamLabel(p) {
     --r-md: 10px;
     --r-lg: 14px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0F0F0E;
-      --surface: #1A1A18;
-      --surface-2: #232320;
-      --surface-3: #2C2C2A;
-      --text: #F1EFE8;
-      --text-2: #B4B2A9;
-      --text-3: #888780;
-      --border: #2C2C2A;
-      --border-2: #444441;
-      --good-bg: #1A2810;
-      --warn-bg: #2A1F0A;
-      --bad-bg: #2A1313;
-      --info-bg: #0E2236;
-      --teal-bg: #0A2A22;
-    }
-  }
+  /* Dark-mode override intentionally disabled (Sept 2026): this app should
+     always render in its light theme, regardless of the phone/OS system
+     appearance setting. The `color-scheme: light` above plus this removed
+     block keeps iOS from re-theming the page dark. */
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; }
   body {

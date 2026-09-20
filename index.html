@@ -10,13 +10,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Coach Platform">
 <script>
+// Service workers are intentionally NOT used in this build (see README) --
+// iOS Safari's background-suspend handling for an active service worker
+// was the likely cause of the tap/button "freeze" reported on iPhone.
+// This just cleans up any registration a phone/browser may already have
+// picked up from an earlier version of this package; it does not register
+// a new one.
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    regs.forEach(function(reg) { reg.unregister(); });
+  }).catch(function(){});
 }
 </script>
 <meta charset="UTF-8">
+<meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coach Performance & Development Platform</title>
 <script>
@@ -29,6 +36,7 @@ if ('serviceWorker' in navigator) {
 </script>
 <style>
   :root {
+    color-scheme: light;
     --rs-red: #BD3039;
     --rs-red-dark: #8C2128;
     --rs-navy: #0C2340;
