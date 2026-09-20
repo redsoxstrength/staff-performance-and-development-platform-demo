@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
+    var here = location.pathname.split('/').pop() || 'index.html';
+    location.replace('gate.html?next=' + encodeURIComponent(here + location.search));
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coach Performance Self-Assessment &amp; Reflection - Boston Red Sox</title>
+<!-- pdf.js is kept only to read metadata out of older PDFs that this tool produced
+     before it switched to native browser print (see downloadPdf()). New exports use
+     the browser's own print-to-PDF, which is far more reliable across hosts/browsers
+     than the old html2canvas screenshot approach, but gives no way to embed custom
+     metadata - so carry-forward now uses a small companion .json data file instead. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  :root {
+    --rs-red: #BD3039;
+    --rs-red-dark: #8C2128;
+    --rs-navy: #0C2340;
+    --rs-navy-light: #1A3357;
+    --ink: #1A1A1A;
+    --ink-soft: #4A4A4A;
+    --text-2: #666666;
+    --text-3: #888888;
+    --line: #E5E7EB;
+    --line-soft: #F3F4F6;
+    --surface: #FFFFFF;
+    --surface-2: #FAFAFA;
+    --good: #2F7A1E;
+    --warn: #B5800A;
+    --bad: #A32D2D;
+    --r-md: 8px;
+    --r-lg: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--surface-2);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: min(900px, 96%); margin: 0 auto; padding: 24px 16px 96px; }
+
+  /* Header */
+  .brand-bar {
+    background: var(--rs-navy);
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 4px solid var(--rs-red);
+  }
+  .brand-bar .brand-org { font-weight: 700; letter-spacing: 0.08em; font-size: 13px; text-transform: uppercase; }
+  .brand-bar .brand-tag { font-size: 12px; opacity: 0.8; }
+
+  /* Card container */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 28px 28px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  @media (max-width: 600px) { .card { padding: 20px 18px; } }
+
+  h1 { color: var(--rs-navy); font-size: 24px; margin: 0 0 8px; font-weight: 700; line-height: 1.25; }
+  h2 { color: var(--rs-navy); font-size: 18px; margin: 0 0 6px; font-weight: 700; }
+  h3 { color: var(--rs-navy); font-size: 15px; margin: 18px 0 8px; font-weight: 600; }
+  h4 { color: var(--rs-navy); font-size: 13px; margin: 12px 0 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  p { margin: 0 0 10px; color: var(--ink-soft); font-size: 15px; }
+  .muted { color: var(--text-2); font-size: 13px; }
+  .tiny { color: var(--text-3); font-size: 12px; }
+
+  .label-chip {
+    display: inline-block;
+    background: var(--rs-red);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .pillar-chip {
+    display: inline-block;
+    background: var(--rs-navy);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-right: 8px;
+  }
+
+  /* Capsules for competency tags (blue = department, red = org) */
+  .capsules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 12px;
+  }
+  .cap {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.35;
+  }
+  .cap-blue { background: var(--rs-navy); color: white; }
+  .cap-red { background: var(--rs-red); color: white; }
+  .cap-legend {
+    font-size: 12px;
+    color: var(--text-2);
+    margin: 8px 0 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+  .cap-legend .cap { font-size: 10px; }
+
+  /* Competency page + stacked focus cards */
+  .focus-card {
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 20px 22px;
+    margin: 18px 0;
+    background: var(--surface);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  }
+  .focus-card h2 {
+    font-size: 17px;
+    color: var(--rs-navy);
+    margin: 0 0 4px;
+    font-weight: 700;
+  }
+  @media (max-width: 600px) { .focus-card { padding: 16px 14px; } }
+
+  /* Form inputs */
+  label { display: block; font-size: 13px; color: var(--rs-navy); font-weight: 600; margin: 10px 0 4px; }
+  input[type=text], input[type=email], textarea, select {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--surface);
+    margin-bottom: 12px;
+  }
+  input[type=text]:focus, input[type=email]:focus, textarea:focus, select:focus {
+    outline: 2px solid var(--rs-red);
+    outline-offset: -1px;
+    border-color: var(--rs-red);
+  }
+  textarea { resize: vertical; min-height: 110px; }
+
+  .role-picker { display: flex; gap: 12px; margin: 6px 0 4px; flex-wrap: wrap; }
+  .role-opt {
+    flex: 1 1 200px;
+    border: 2px solid var(--line);
+    background: var(--surface);
+    padding: 16px 18px;
+    border-radius: var(--r-md);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+  }
+  .role-opt:hover { border-color: var(--rs-navy); background: var(--line-soft); }
+  .role-opt.selected {
+    border-color: var(--rs-red);
+    background: #FFF6F7;
+  }
+  .role-opt .ro-title { font-weight: 700; color: var(--rs-navy); font-size: 15px; margin-bottom: 4px; }
+  .role-opt .ro-sub { font-size: 12px; color: var(--text-2); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 22px;
+    border-radius: var(--r-md);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 0;
+    font-family: inherit;
+    transition: all 0.15s;
+    text-decoration: none;
+    line-height: 1;
+  }
+  .btn-primary { background: var(--rs-red); color: white; }
+  .btn-primary:hover { background: var(--rs-red-dark); }
+  .btn-primary:disabled { background: #C9C9C9; cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--rs-navy);
+    border: 1px solid var(--line);
+  }
+  .btn-secondary:hover { background: var(--line-soft); border-color: var(--rs-navy); }
+  .btn-ghost { background: transparent; color: var(--rs-navy); padding: 10px 14px; }
+  .btn-ghost:hover { background: var(--line-soft); }
+  .btn-big { padding: 16px 32px; font-size: 16px; }
+  .btn-ref {
+    background: white;
+    color: var(--rs-red);
+    border: 2px solid var(--rs-navy);
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .btn-ref:hover { background: var(--line-soft); }
+  .ref-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ref-row-label {
+    width: 100%;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-2);
+    margin-bottom: 2px;
+  }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Progress bar */
+  .progress {
+    background: var(--line);
+    height: 6px;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: var(--rs-red);
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-2);
+    margin-bottom: 4px;
+  }
+
+  /* Slider */
+  .slider-wrap { margin: 22px 0 10px; }
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .slider-score {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--rs-red);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .slider-band {
+    font-size: 13px;
+    color: var(--rs-navy);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(to right, #A32D2D 0%, #B5800A 33%, #2F7A1E 66%, var(--rs-navy) 100%);
+    border-radius: 3px;
+    outline: none;
+    margin: 8px 0 6px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--rs-red);
+    border: 3px solid white;
+    box-shadow: 0 0 0 1px var(--rs-navy), 0 2px 4px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--rs-red);
+    border: 3px solid white;
+    box-shadow: 0 0 0 1px var(--rs-navy);
+    cursor: pointer;
+  }
+  .slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-3);
+    padding: 0 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Level guide - horizontal, reads left-to-right under the slider */
+  .level-guide {
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--surface-2);
+  }
+  .level-guide-header {
+    background: var(--rs-navy);
+    color: white;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .level-guide-note {
+    font-weight: 400;
+    font-size: 10px;
+    opacity: 0.85;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .level-cols {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .level-col {
+    padding: 12px 14px;
+    border-right: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-2);
+    background: var(--surface-2);
+    transition: background 0.15s, color 0.15s;
+  }
+  .level-col:last-child { border-right: 0; }
+  .level-col.current { background: #FFF6F7; color: var(--ink); }
+  .level-col .lvl-badge {
+    font-weight: 800;
+    color: var(--rs-navy);
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .level-col.current .lvl-badge { color: var(--rs-red); }
+  .level-col .lvl-band {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-3);
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+  }
+  .level-col.current .lvl-band { color: var(--rs-red); border-bottom-color: var(--rs-red); }
+  .level-col .lvl-desc { color: inherit; }
+  @media (max-width: 640px) {
+    .level-cols { grid-template-columns: 1fr; }
+    .level-col { border-right: 0; border-bottom: 1px solid var(--line); }
+    .level-col:last-child { border-bottom: 0; }
+  }
+
+  /* Rollup blocks (Department + Org competency banded scores) */
+  .rollup-block { margin: 4px 0 22px; }
+  .rollup-block h3 {
+    margin: 14px 0 4px;
+    color: var(--rs-navy);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .rollup-block .rollup-note {
+    color: var(--text-2);
+    font-size: 12px;
+    margin: 0 0 10px;
+  }
+  .rollup-group {
+    margin: 12px 0 6px;
+    color: var(--rs-red);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .radar-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0 6px;
+  }
+  .radar-wrap svg { display: block; width: 100%; max-width: 420px; height: auto; overflow: visible; }
+  .radar-legend {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    font-size: 12px;
+    color: var(--text-2);
+    margin-bottom: 14px;
+  }
+  .radar-legend .rl-swatch {
+    display: inline-block;
+    width: 22px;
+    height: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 2px;
+  }
+  .radar-legend .rl-prior {
+    background: repeating-linear-gradient(to right, #8B93A1 0, #8B93A1 4px, transparent 4px, transparent 7px);
+  }
+  .rollup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .rollup-cell {
+    background: var(--rs-navy);
+    color: white;
+    padding: 12px 14px;
+    border-radius: var(--r-md);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .rollup-cell.no-data {
+    background: var(--line);
+    color: var(--text-2);
+  }
+  .rollup-cell .rc-name {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    opacity: 0.9;
+  }
+  .rollup-cell .rc-score {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: white;
+  }
+  .rollup-cell.no-data .rc-score { color: var(--text-3); }
+  .rollup-cell .rc-band {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+  }
+  .rollup-cell .rc-meta {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+  .rollup-cell .rc-delta {
+    font-size: 11px;
+    background: rgba(255,255,255,0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    align-self: flex-start;
+    margin-top: 3px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .rollup-cell .rc-desc {
+    font-size: 11px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.88);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    font-style: italic;
+  }
+  .rollup-cell.no-data .rc-desc {
+    color: var(--text-2);
+    border-top-color: var(--text-3);
+  }
+
+  /* Review */
+  .review-section {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--line);
+    border-radius: var(--r-md);
+    margin-bottom: 12px;
+    background: var(--surface);
+    position: relative;
+  }
+  .review-section h4 { margin-top: 0; }
+  .review-section .rs-score {
+    color: var(--rs-red);
+    font-weight: 800;
+    font-size: 22px;
+    font-variant-numeric: tabular-nums;
+    margin-right: 8px;
+  }
+  .review-section .rs-comment {
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding: 8px 10px;
+    background: var(--line-soft);
+    border-radius: 6px;
+    margin-top: 8px;
+    font-style: italic;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .review-section .rs-comment.empty { color: var(--text-3); font-style: italic; }
+  .review-section .rs-edit {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 12px;
+    color: var(--rs-navy);
+    cursor: pointer;
+    text-decoration: underline;
+    background: transparent;
+    border: 0;
+    padding: 4px 8px;
+  }
+  .review-section .rs-edit:hover { color: var(--rs-red); }
+  .review-pillar {
+    font-weight: 700;
+    color: var(--rs-navy);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 16px 0 8px;
+  }
+  .review-pillar:first-of-type { margin-top: 4px; }
+
+  /* Autosave indicator */
+  .autosave {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--rs-navy);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .autosave.show { opacity: 0.9; }
+
+  /* Confirm state */
+  .confirm-state { text-align: center; padding: 40px 20px; }
+  .confirm-check {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--good);
+    color: white;
+    font-size: 40px;
+    line-height: 72px;
+    margin: 0 auto 18px;
+    font-weight: 300;
+  }
+
+  /* PDF template. On screen it is kept fully opaque and in normal render
+     flow but shifted far off-screen with a transform (never opacity:0,
+     visibility:hidden or display:none - those all break differently across
+     browsers/hosts when something later tries to rasterize or print it).
+     PDF generation itself now uses the browser's native print engine
+     (window.print, see downloadPdf()) instead of an html2canvas screenshot,
+     which was unreliable across real hosting environments. The @media print
+     block below is what actually turns this div into the printed page. */
+  #pdf-template {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 780px;
+    background: white;
+    color: #111;
+    padding: 40px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    transform: translateX(-20000px);
+    pointer-events: none;
+  }
+
+  @media print {
+    .brand-bar, #app-shell, #autosave { display: none !important; }
+    html, body { background: white !important; height: auto !important; }
+    #pdf-template {
+      display: block !important;
+      position: static !important;
+      transform: none !important;
+      opacity: 1 !important;
+      width: auto !important;
+      max-width: 100%;
+      padding: 0 !important;
+    }
+  }
+  @page { margin: 14mm; }
+
+  /* Drop zone on welcome */
+  .dropzone {
+    border: 2px dashed var(--line);
+    background: var(--surface-2);
+    border-radius: var(--r-md);
+    padding: 18px 20px;
+    text-align: center;
+    color: var(--text-2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin: 6px 0 16px;
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--rs-red);
+    background: #FFF6F7;
+    color: var(--ink);
+  }
+  .dropzone .dz-title { font-weight: 700; color: var(--rs-navy); font-size: 14px; margin-bottom: 4px; }
+  .dropzone .dz-hint { font-size: 12px; color: var(--text-2); }
+  .shadow-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFF6F7;
+    border: 1px solid var(--rs-red);
+    color: var(--rs-navy);
+    padding: 8px 14px;
+    border-radius: var(--r-md);
+    font-size: 13px;
+    margin: 6px 0 12px;
+  }
+  .shadow-chip b { color: var(--rs-red); }
+  .shadow-chip .sc-clear {
+    background: transparent;
+    border: 0;
+    color: var(--text-2);
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: underline;
+    padding: 0 0 0 6px;
+  }
+  .shadow-chip .sc-clear:hover { color: var(--rs-red); }
+
+  /* Shadow / carry-forward indicators */
+  .shadow-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #F3F4F6;
+    border: 1px dashed var(--text-3);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 8px;
+  }
+  .shadow-inline .si-val {
+    color: var(--rs-navy);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .shadow-inline .si-delta {
+    color: var(--good);
+    font-weight: 700;
+  }
+  .shadow-inline .si-delta.down { color: var(--bad); }
+  .shadow-inline .si-delta.same { color: var(--text-3); }
+  .shadow-prev-comment {
+    background: #F9FAFB;
+    border-left: 3px solid var(--text-3);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+  .shadow-prev-comment .spc-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-3);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .shadow-prev-comment em { color: var(--ink-soft); font-style: italic; }
+  .pdf-header {
+    border-bottom: 4px solid #BD3039;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  .pdf-header .pdf-org {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #0C2340;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pdf-header .pdf-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0C2340;
+    margin: 0;
+    line-height: 1.25;
+  }
+  .pdf-header .pdf-sub {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+  .pdf-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 14px 16px;
+    background: #F6F7F8;
+    border-left: 4px solid #0C2340;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .pdf-meta .pm-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #0C2340;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .pdf-meta .pm-value {
+    color: #111;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .pdf-section-title {
+    color: #0C2340;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 22px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #BD3039;
+  }
+  .pdf-pillar-title {
+    color: #BD3039;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 18px 0 8px;
+  }
+  .pdf-focus-row {
+    display: grid;
+    grid-template-columns: 1fr 60px;
+    align-items: baseline;
+    padding: 8px 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    page-break-inside: avoid;
+  }
+  .pdf-focus-row .pf-name { font-size: 13px; font-weight: 600; color: #0C2340; }
+  .pdf-focus-row .pf-band { font-size: 11px; color: #666; margin-top: 2px; }
+  .pdf-focus-row .pf-score {
+    text-align: right;
+    font-size: 22px;
+    font-weight: 800;
+    color: #BD3039;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .pdf-focus-row .pf-comment {
+    grid-column: 1 / span 2;
+    background: #F6F7F8;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #333;
+    margin-top: 6px;
+    font-style: italic;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .pdf-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin: 14px 0 20px;
+  }
+  .pdf-rollup-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 8px 0 14px;
+  }
+  .pdf-rollup-cell {
+    background: #0C2340;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    page-break-inside: avoid;
+  }
+  .pdf-rollup-cell.no-data { background: #E5E7EB; color: #666; }
+  .pdf-rollup-cell .prc-name {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    opacity: 0.92;
+  }
+  .pdf-rollup-cell .prc-score {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .pdf-rollup-cell.no-data .prc-score { color: #999; }
+  .pdf-rollup-cell .prc-band {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+    margin-top: 2px;
+  }
+  .pdf-rollup-cell .prc-meta {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+  .pdf-rollup-cell .prc-desc {
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.9);
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.25);
+    font-style: italic;
+  }
+  .pdf-rollup-cell.no-data .prc-desc {
+    color: #666;
+    border-top-color: #999;
+  }
+  .pdf-rollup-group {
+    color: #BD3039;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 12px 0 6px;
+  }
+  .pdf-summary-cell {
+    background: #0C2340;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .pdf-summary-cell .psc-label {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 2px;
+  }
+  .pdf-summary-cell .psc-score {
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .pdf-summary-cell .psc-band {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+  .pdf-reflection {
+    background: #F6F7F8;
+    border-left: 4px solid #BD3039;
+    padding: 12px 16px;
+    margin: 8px 0 14px;
+    font-size: 13px;
+    color: #222;
+    white-space: pre-wrap;
+    line-height: 1.55;
+    page-break-inside: avoid;
+  }
+  .pdf-footer {
+    margin-top: 28px;
+    padding-top: 14px;
+    border-top: 1px solid #E5E7EB;
+    font-size: 10px;
+    color: #999;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="brand-bar">
+  <div>
+    <div class="brand-org">Boston Red Sox &middot; Performance</div>
+    <div class="brand-tag">Coach Performance Self-Assessment &amp; Reflection</div>
+  </div>
+</div>
+
+<div class="shell" id="app-shell">
+  <div id="app"></div>
+</div>
+
+<div class="autosave" id="autosave">Saved</div>
+<div id="pdf-template" aria-hidden="true"></div>
+
+<script>
+//==============================================================================
+// FRAMEWORK DATA
+//==============================================================================
+
+// Coach / Practitioner framework (delivery-focused). Names are {en, es} so
+// the whole tool can render in either language from one data source - see
+// L() below for how these get resolved against the active state.lang.
+const COACH_FRAMEWORK = [
+  { id: 'sc-knowledge', name: { en: 'Performance knowledge & application', es: 'Conocimiento y aplicación del rendimiento' }, focuses: [
+    { id: 'warmups',        name: { en: 'Warm-ups & prep', es: 'Calentamiento y preparación' } },
+    { id: 'strength',       name: { en: 'Strength', es: 'Fuerza' } },
+    { id: 'power',          name: { en: 'Power', es: 'Potencia' } },
+    { id: 'speed',          name: { en: 'Speed', es: 'Velocidad' } },
+    { id: 'fitness',        name: { en: 'Fitness', es: 'Acondicionamiento físico' } },
+    { id: 'assessment',     name: { en: 'Assessment skills', es: 'Habilidades de evaluación' } },
+    { id: 'program-design', name: { en: 'Program design', es: 'Diseño de programas' } }
+  ]},
+  { id: 'coaching', name: { en: 'Coaching effectiveness', es: 'Efectividad como entrenador' }, focuses: [
+    { id: 'instruction', name: { en: 'Coaching & instruction', es: 'Enseñanza e instrucción' } },
+    { id: 'tech-data',   name: { en: 'Tech & data', es: 'Tecnología y datos' } },
+    { id: 'schedule',    name: { en: 'Schedule management', es: 'Gestión del horario' } },
+    { id: 'sport-spec',  name: { en: 'Sport-specific', es: 'Aplicación específica al deporte' } }
+  ]},
+  { id: 'universal', name: { en: 'Universal competencies', es: 'Competencias universales' }, focuses: [
+    { id: 'evidence',   name: { en: 'Evidence-based', es: 'Basado en evidencia' } },
+    { id: 'innovation', name: { en: 'Innovation & risk', es: 'Innovación y toma de riesgos' } },
+    { id: 'problem',    name: { en: 'Problem solver', es: 'Solución de problemas' } },
+    { id: 'modelling',  name: { en: 'Modelling & growth', es: 'Modelado y crecimiento' } },
+    { id: 'team-comm',  name: { en: 'Team communication', es: 'Comunicación de equipo' } }
+  ]}
+];
+
+// Department Leadership framework
+const LEADER_FRAMEWORK = [
+  { id: 'l-domain', name: { en: 'Domain knowledge & expertise', es: 'Conocimiento y experticia técnica' }, focuses: [
+    { id: 'l-program-standards',  name: { en: 'Program standards & quality control', es: 'Estándares de programa y control de calidad' } },
+    { id: 'l-periodization',      name: { en: 'Periodization & planning oversight', es: 'Periodización y supervisión de planificación' } },
+    { id: 'l-coaching-standards', name: { en: 'Coaching & instruction standards', es: 'Estándares de enseñanza e instrucción' } },
+    { id: 'l-sport-science',      name: { en: 'Sport science & sport integration', es: 'Ciencia del deporte e integración deportiva' } }
+  ]},
+  { id: 'l-relationships', name: { en: 'Teach, influence, build relationships', es: 'Enseñar, influir y construir relaciones' }, focuses: [
+    { id: 'l-staff-dev',       name: { en: 'Staff development & mentorship', es: 'Desarrollo de personal y mentoría' } },
+    { id: 'l-operations',      name: { en: 'Schedule & operations management', es: 'Gestión de horario y operaciones' } },
+    { id: 'l-problem-solving', name: { en: 'Problem Solving & Systemic/Architectural Innovation', es: 'Solución de Problemas e Innovación Sistémica/Arquitectónica' } },
+    { id: 'l-modelling',       name: { en: 'Modelling, humility & growth', es: 'Modelado, humildad y crecimiento' } },
+    { id: 'l-communication',   name: { en: 'Communication, accountability & collaboration', es: 'Comunicación, responsabilidad y colaboración' } }
+  ]},
+  { id: 'l-tech', name: { en: 'Technological proficiency & expertise', es: 'Dominio tecnológico y experticia' }, focuses: [
+    { id: 'l-tech-governance', name: { en: 'Technology governance & staff adoption', es: 'Gobernanza tecnológica y adopción por el personal' } },
+    { id: 'l-data-infra',      name: { en: 'Data infrastructure & reporting', es: 'Infraestructura de datos y reportes' } }
+  ]},
+  { id: 'l-data', name: { en: 'Data analysis', es: 'Análisis de datos' }, focuses: [
+    { id: 'l-data-interp', name: { en: 'Department-level data interpretation', es: 'Interpretación de datos a nivel departamental' } },
+    { id: 'l-evidence',    name: { en: 'Evidence-based Culture & Methodological Innovation', es: 'Cultura Basada en Evidencia e Innovación Metodológica' } }
+  ]}
+];
+
+// Resolve a bilingual {en, es} value against the active language. Falls back
+// to English, and passes plain strings through untouched (defensive - lets
+// us roll this in without having to convert every single string at once).
+function L(v, langOverride) {
+  if (v == null) return v;
+  if (typeof v === 'object') {
+    const lang = langOverride || (typeof activeLang === 'function' ? activeLang() : (state.lang || 'en'));
+    return v[lang] != null ? v[lang] : v.en;
+  }
+  return v;
+}
+
+// 20-80 level anchor descriptors per focus. Each entry: { en: [l20,l40,l60,l80], es: [...] }.
+// Spanish text mirrors the same concise, single-sentence-per-level tone as the
+// English (these are the fast-completion in-tool anchors; the four poster PDFs
+// carry the deeper, closer-to-original detail for reference/print).
+const LEVEL_ANCHORS = {
+  // ---- Coach / Practitioner ----
+  'warmups': { en: [
+    'Warm-ups lack structure. Not aligned to HML. Preparation quality varies day to day.',
+    'Warm-ups follow a general template. Some individualization present, but load-day alignment is inconsistent.',
+    'Warm-ups consistently follow team principles and align with HML. Athletes leave ready to train.',
+    'Individualized, principled, and adaptable. Other coaches reference your prep model as the standard.'
+  ], es: [
+    'Los calentamientos carecen de estructura. No están alineados con el modelo HML. La calidad de la preparación varía de un día a otro.',
+    'Los calentamientos siguen una plantilla general. Existe cierta individualización, pero la alineación con el día de carga (HML) es inconsistente.',
+    'Los calentamientos siguen consistentemente los principios del equipo y se alinean con el HML. Los atletas quedan listos para entrenar.',
+    'Individualizado, fundamentado en principios y adaptable. Otros entrenadores toman tu modelo de preparación como el estándar.'
+  ]},
+  'strength': { en: [
+    'Selections and cues aren’t grounded in team principles. Technical execution wavers.',
+    'Programming aligns with basics; coaching cues are developing. Some technical inconsistency in the room.',
+    'Solid programming aligned with team principles. Clean cueing, athlete progression tracked and adjusted.',
+    'Elite programming using dynamic correspondence to target specific performance problems. Athletes and peers seek your input to raise their own standard.'
+  ], es: [
+    'Las selecciones y las indicaciones técnicas no están fundamentadas en los principios del equipo. La ejecución técnica es inestable.',
+    'La programación se alinea con lo básico; las indicaciones técnicas están en desarrollo. Hay cierta inconsistencia técnica en la sala.',
+    'Programación sólida alineada con los principios del equipo. Indicaciones claras; la progresión del atleta se registra y se ajusta.',
+    'Programación de nivel élite que utiliza el principio de correspondencia dinámica para atacar problemas específicos de rendimiento. Atletas y colegas buscan tu opinión para elevar su propio estándar.'
+  ]},
+  'power': { en: [
+    'Limited exercise variety. Cueing to intent (bar speed, jump quality) is inconsistent.',
+    'Uses the main plyometric/ballistic categories (medballs, jumps). Load and volume choices still developing.',
+    'Power selections match the training goal and athlete need, using a wide variety of exercises. Cueing to intent is clear and consistent.',
+    'Innovative selections informed by short/long SSC and plyometric taxonomy. Uses data to titrate load and intent, and contributes to method development.'
+  ], es: [
+    'Variedad limitada de ejercicios. Las indicaciones orientadas a la intención (velocidad de la barra, calidad del salto) son inconsistentes.',
+    'Utiliza las principales categorías pliométricas y balísticas (balones medicinales, saltos). Las decisiones de carga y volumen aún están en desarrollo.',
+    'Las selecciones de potencia corresponden al objetivo del entrenamiento y la necesidad del atleta, usando una amplia variedad de ejercicios. Las indicaciones orientadas a la intención son claras y consistentes.',
+    'Selecciones innovadoras basadas en la taxonomía del ciclo de estiramiento-acortamiento (corto/largo) y la pliometría. Utiliza los datos para ajustar la carga y la intención, y contribuye al desarrollo de nuevos métodos.'
+  ]},
+  'speed': { en: [
+    'Speed work is ad-hoc. Small-group management limited. Not integrated with technical coaches.',
+    'Basic acceleration and max-velocity drills used. Group management and technical integration improving.',
+    'Confident across the speed continuum, using normative GPS data to guide loads. Needs high-speed camera footage to spot movement deficiencies.',
+    'Adapts to individual and positional needs without needing camera footage to spot deficiencies. Bridges Performance / technical-coach conversations seamlessly.'
+  ], es: [
+    'El trabajo de velocidad es improvisado. El manejo de grupos pequeños es limitado. No hay integración con los entrenadores técnicos.',
+    'Se utilizan ejercicios básicos de aceleración y velocidad máxima. El manejo de grupos y la integración técnica están mejorando.',
+    'Dominio seguro a lo largo de todo el continuo de velocidad, usando datos normativos de GPS para guiar las cargas. Necesita video de cámara de alta velocidad para detectar deficiencias de movimiento.',
+    'Se adapta a las necesidades individuales y posicionales sin necesitar video de cámara para detectar deficiencias. Conecta sin fricciones las conversaciones entre Rendimiento y los entrenadores técnicos.'
+  ]},
+  'fitness': { en: [
+    'Conditioning not programmed to work:rest. Energy-system rationale unclear.',
+    'Uses work:rest but the rationale is inconsistent. Adherence to sport demand still developing.',
+    'Fitness planned to work:rest and matches sport demand. Athletes track progression and buy in.',
+    'Sophisticated periodization of energy systems. Others reference your model as the department standard.'
+  ], es: [
+    'El acondicionamiento no está programado según la relación trabajo:descanso. La lógica de los sistemas energéticos no es clara.',
+    'Utiliza la relación trabajo:descanso, pero la lógica es inconsistente. La adherencia a la demanda del deporte todavía está en desarrollo.',
+    'El acondicionamiento se planifica según la relación trabajo:descanso y corresponde a la demanda del deporte. Los atletas siguen su progresión y se comprometen con el proceso.',
+    'Periodización sofisticada de los sistemas energéticos. Otros toman tu modelo como el estándar del departamento.'
+  ]},
+  'assessment': { en: [
+    'Rarely uses screen or testing data. Programming decisions not clearly linked to assessment.',
+    'Uses the movement screen, but follow-through into programming is inconsistent.',
+    'Movement screen and testing directly inform programming. Athletes see the connection.',
+    'Screens feed a personalized development loop, including advanced table-testing protocols. You refine assessment protocols for the team.'
+  ], es: [
+    'Rara vez utiliza los datos del screening o de las pruebas. Las decisiones de programación no están claramente vinculadas a la evaluación.',
+    'Utiliza el movement screen, pero su aplicación en la programación es inconsistente.',
+    'El movement screen y las pruebas informan directamente la programación. Los atletas perciben esa conexión.',
+    'Los screenings alimentan un ciclo de desarrollo personalizado, incluyendo protocolos avanzados de table-testing. Refinas los protocolos de evaluación para todo el equipo.'
+  ]},
+  'program-design': { en: [
+    'Blocks are siloed. Strength, power, speed, and fitness don’t integrate cleanly.',
+    'Basic integration of pillars. Individualization is inconsistent across athletes.',
+    'Well-integrated across pillars. Individualized for position and athlete need.',
+    'Elite integration. Programs are adaptable, evidence-informed, and teach other coaches how to design.'
+  ], es: [
+    'Los bloques están aislados entre sí. La fuerza, la potencia, la velocidad y el acondicionamiento no se integran de forma clara.',
+    'Integración básica de los pilares. La individualización es inconsistente entre los atletas.',
+    'Buena integración entre los pilares. Individualizado según la posición y la necesidad de cada atleta.',
+    'Integración de nivel élite. Los programas son adaptables, están fundamentados en evidencia y le enseñan a otros entrenadores cómo diseñar los suyos.'
+  ]},
+  'instruction': { en: [
+    'Cues generic. Interventions rare. Athlete engagement variable.',
+    'Cues correct but not always tailored. Some intervention. Language is adapting to athletes.',
+    'Precise cueing, timely interventions, high engagement. Language adapts to the athlete.',
+    'Masterful coaching. Your presence, cues, and interventions raise the standard of the whole room.'
+  ], es: [
+    'Las indicaciones son genéricas. Las intervenciones son poco frecuentes. El nivel de involucramiento del atleta es variable.',
+    'Las indicaciones son correctas pero no siempre están personalizadas. Hay algo de intervención. El lenguaje se está adaptando a los atletas.',
+    'Indicaciones precisas, intervenciones oportunas y alto involucramiento. El lenguaje se adapta a cada atleta.',
+    'Enseñanza magistral. Tu presencia, tus indicaciones y tus intervenciones elevan el estándar de toda la sala.'
+  ]},
+  'tech-data': { en: [
+    'Rarely uses AMS, VBT, or force plates. Data isn’t fed back to athletes.',
+    'Uses core tools, but feedback loops with athletes are inconsistent.',
+    'Uses AMS and performance tools reliably. Data closes the loop with athletes.',
+    'Uses data creatively to change practice. Sets the standard for how tech drives decisions.'
+  ], es: [
+    'Rara vez utiliza el AMS, el VBT o las plataformas de fuerza. Los datos no se comparten de vuelta con los atletas.',
+    'Utiliza las herramientas principales, pero el ciclo de retroalimentación con los atletas es inconsistente.',
+    'Utiliza el AMS y las herramientas de rendimiento de manera confiable. Los datos cierran el ciclo con los atletas.',
+    'Utiliza los datos de forma creativa para transformar la práctica. Establece el estándar de cómo la tecnología guía las decisiones.'
+  ]},
+  'schedule': { en: [
+    'Weekly plan isn’t built from HML. Conflicts and reactive changes are common.',
+    'Uses HML in planning; time discipline improving. Challenging conversations still tend to be avoided.',
+    'HML drives the week. Time-disciplined. Holds accountability conversations with managers and coaches.',
+    'Anticipates conflicts and resolves them before they land. Coaches trust your calendar.'
+  ], es: [
+    'El plan semanal no se construye a partir del HML. Los conflictos y los cambios reactivos son frecuentes.',
+    'Utiliza el HML en la planificación; la disciplina de tiempo está mejorando. Todavía tiende a evitar las conversaciones difíciles.',
+    'El HML guía la semana. Disciplinado con el tiempo. Sostiene conversaciones de responsabilidad con gerentes y entrenadores.',
+    'Anticipa los conflictos y los resuelve antes de que ocurran. Los entrenadores confían en tu calendario.'
+  ]},
+  'sport-spec': { en: [
+    'Limited sport knowledge outside Performance. Integration with technical coaches is thin.',
+    'Basic sport-specific language. Some integration with hitting and pitching coaches.',
+    'Fluent in sport-specific tasks. Regularly integrates with technical coaches.',
+    'Deep sport IQ. Actively shapes how Performance, hitting, pitching, and defense integrate.'
+  ], es: [
+    'Conocimiento limitado del deporte fuera del área de Rendimiento. La integración con los entrenadores técnicos es escasa.',
+    'Manejo básico del lenguaje específico del deporte. Cierta integración con los entrenadores de bateo y pitcheo.',
+    'Dominio fluido de las tareas específicas del deporte. Se integra regularmente con los entrenadores técnicos.',
+    'Inteligencia de juego profunda. Da forma activamente a la integración entre Rendimiento, bateo, pitcheo y defensa.'
+  ]},
+  'evidence': { en: [
+    'Practice not grounded in evidence. Rarely reads or applies research.',
+    'Reads occasionally; application is patchy. Some link between practice and evidence.',
+    'Practice consistently grounded in evidence and team principles. Contributes to internal discussion.',
+    'Contributes evidence to the department. Runs internal case studies or research that shift practice.'
+  ], es: [
+    'La práctica no está fundamentada en evidencia. Rara vez lee o aplica investigación.',
+    'Lee ocasionalmente; la aplicación es irregular. Existe cierta relación entre la práctica y la evidencia.',
+    'La práctica está consistentemente fundamentada en evidencia y en los principios del equipo. Contribuye a la discusión interna.',
+    'Aporta evidencia al departamento. Lidera estudios de caso o investigaciones internas que transforman la práctica.'
+  ]},
+  'innovation': { en: [
+    'Sticks to what’s comfortable. Rare to challenge convention or run new experiments.',
+    'Willing to try new ideas occasionally; typically waits for others to lead the way.',
+    'Regularly proposes experiments; comfortable challenging convention with rationale.',
+    'Drives departmental innovation. Other coaches adopt your experiments as new standards.'
+  ], es: [
+    'Se aferra a lo que le resulta cómodo. Rara vez cuestiona lo convencional o realiza nuevos experimentos.',
+    'Está dispuesto a probar nuevas ideas de vez en cuando; por lo general espera a que otros marquen el camino.',
+    'Propone experimentos con regularidad; se siente cómodo cuestionando lo convencional con argumentos sólidos.',
+    'Impulsa la innovación del departamento. Otros entrenadores adoptan tus experimentos como nuevos estándares.'
+  ]},
+  'problem': { en: [
+    'Notices problems but rarely acts. Waits for others to solve or escalate.',
+    'Addresses problems in your own area. Slower to see cross-area issues.',
+    'Actively identifies and resolves problems in and beyond your area.',
+    'Sees systemic issues early, convenes others, produces durable fixes across the department.'
+  ], es: [
+    'Nota los problemas pero rara vez actúa. Espera a que otros los resuelvan o los escale.',
+    'Aborda los problemas dentro de su propia área. Le cuesta más identificar problemas que cruzan otras áreas.',
+    'Identifica y resuelve activamente problemas dentro y fuera de su área.',
+    'Detecta los problemas sistémicos a tiempo, convoca a otros y genera soluciones duraderas para todo el departamento.'
+  ]},
+  'modelling': { en: [
+    'Punctuality, presence, or professionalism slip. Focus varies day to day.',
+    'Generally professional; occasional inconsistency in standards or focus.',
+    'Consistently punctual, prepared, focused. Leads by example.',
+    'Sets the professional bar for the room. Growth mindset visible in every setting.'
+  ], es: [
+    'La puntualidad, la presencia o el profesionalismo fallan en ocasiones. El enfoque varía de un día a otro.',
+    'Generalmente profesional; ocasional inconsistencia en los estándares o el enfoque.',
+    'Consistentemente puntual, preparado y enfocado. Predica con el ejemplo.',
+    'Marca el estándar profesional de la sala. Su mentalidad de crecimiento es visible en cada contexto.'
+  ]},
+  'team-comm': { en: [
+    'Cross-department communication is minimal or reactive. Rarely holds players accountable to GPS, punctuality, or prep/recovery routines, and Slack discipline is variable.',
+    'Communicates when prompted; accountability building (works with some players, not others); regulation under stress still developing.',
+    'Communicates proactively across departments and follows up in Slack. Holds accountability to GPS, punctuality, and prep/recovery consistently. Regulated under stress.',
+    'Sets the standard for cross-departmental candor and clarity, escalating problems promptly to supervisors. Others follow your model.'
+  ], es: [
+    'La comunicación entre departamentos es mínima o reactiva. Rara vez exige responsabilidad a los atletas en cuanto al GPS, la puntualidad o las rutinas de preparación/recuperación, y la disciplina en Slack es variable.',
+    'Se comunica cuando se le solicita; está construyendo su sentido de responsabilidad (funciona con algunos atletas, no con otros); la regulación bajo presión todavía está en desarrollo.',
+    'Se comunica de forma proactiva entre departamentos y da seguimiento en Slack. Exige responsabilidad de manera consistente en cuanto al GPS, la puntualidad y la preparación/recuperación. Se mantiene regulado bajo presión.',
+    'Establece el estándar de franqueza y claridad entre departamentos, escalando los problemas con prontitud a los supervisores. Otros siguen tu modelo.'
+  ]},
+  // ---- Department Leadership ----
+  'l-program-standards': { en: [
+    'Standards vary coach-to-coach. Program quality is inconsistent across the group.',
+    'Basic standards articulated; reviews happen on request rather than proactively across the department.',
+    'Clear standards with proactive, regular reviews. Underperforming coaches get targeted development plans.',
+    'Standards drive measurable improvement in coach output over time. Quality benchmarks used, refined, and shared as best practice.'
+  ], es: [
+    'Los estándares varían de un entrenador a otro. La calidad de los programas es inconsistente dentro del grupo.',
+    'Se han establecido estándares básicos; las revisiones ocurren cuando se solicitan en lugar de hacerse de manera proactiva en el departamento.',
+    'Estándares claros con revisiones proactivas y regulares. Los entrenadores con bajo desempeño reciben planes de desarrollo específicos.',
+    'Los estándares impulsan una mejora medible en el desempeño de los entrenadores con el tiempo. Los puntos de referencia de calidad se utilizan, se refinan y se comparten como mejores prácticas.'
+  ]},
+  'l-periodization': { en: [
+    'No department-level annual or seasonal plan. Coaches plan in isolation.',
+    'Annual plan exists but sport-calendar alignment is inconsistent.',
+    'Solid annual and seasonal plan aligned to spring training, in-season, and off-season phases. Coaches build off it.',
+    'Adaptive planning with contingencies for trades, call-ups, and rehab returns. Sets the industry standard for the level.'
+  ], es: [
+    'No existe un plan anual o de temporada a nivel departamental. Los entrenadores planifican de forma aislada.',
+    'Existe un plan anual, pero su alineación con el calendario deportivo es inconsistente.',
+    'Plan anual y de temporada sólido, alineado con las fases de spring training, temporada regular y offseason. Los entrenadores construyen a partir de él.',
+    'Planificación adaptable con contingencias para canjes, ascensos (call-ups) y regresos de rehabilitación. Establece el estándar de la industria para ese nivel.'
+  ]},
+  'l-coaching-standards': { en: [
+    'Session delivery expectations unclear. Little observation or feedback happening.',
+    'Basic delivery expectations set. Occasional structured observation of coaches.',
+    'Non-negotiable delivery expectations covering cues and player engagement. Regular observation and feedback loop, with shared language across the staff.',
+    'Coaches hold each other to the standard without top-down enforcement. Coaching-culture-defining observation model; coaches request feedback, not avoid it.'
+  ], es: [
+    'Las expectativas para la conducción de las sesiones no son claras. Hay poca observación o retroalimentación.',
+    'Se han establecido expectativas básicas de conducción. Observación estructurada ocasional de los entrenadores.',
+    'Expectativas de conducción no negociables que abarcan las indicaciones y el involucramiento de los jugadores. Ciclo regular de observación y retroalimentación, con un lenguaje compartido en todo el personal.',
+    'Los entrenadores se exigen responsabilidad entre sí sin necesidad de imposición desde arriba. Modelo de observación que define la cultura de enseñanza; los entrenadores piden retroalimentación en lugar de evitarla.'
+  ]},
+  'l-sport-science': { en: [
+    'Weak link to sport outcomes. Cross-department integration is thin.',
+    'Some connection to sport outcomes. Cross-department integration developing.',
+    'Strong working relationships with pitching, hitting, and athletic training. Cross-department integration flows naturally.',
+    'Sought out by baseball operations and technical coaches as a strategic partner. Actively shapes how sport science drives sport-outcome decisions across the front office.'
+  ], es: [
+    'Vínculo débil con los resultados deportivos. La integración entre departamentos es escasa.',
+    'Cierta conexión con los resultados deportivos. La integración entre departamentos está en desarrollo.',
+    'Relaciones de trabajo sólidas con pitcheo, bateo y entrenamiento atlético (athletic training). La integración entre departamentos fluye con naturalidad.',
+    'Buscado por las operaciones de béisbol y los entrenadores técnicos como socio estratégico. Da forma activamente a cómo la ciencia del deporte guía las decisiones sobre resultados deportivos en toda la oficina principal.'
+  ]},
+  'l-staff-dev': { en: [
+    'No individual development plans. Mentorship is ad-hoc.',
+    'Some development plans; mentorship inconsistent across staff.',
+    'Every coach has a development plan covering technical and behavioral growth. Mentorship is structured, active, and psychologically safe.',
+    'Structured succession planning in place; coaches leave the group stronger, ready for senior roles. Sought out for input on staffing and succession.'
+  ], es: [
+    'No existen planes de desarrollo individual. La mentoría es improvisada.',
+    'Existen algunos planes de desarrollo; la mentoría es inconsistente entre el personal.',
+    'Cada entrenador cuenta con un plan de desarrollo que abarca el crecimiento técnico y conductual. La mentoría es estructurada, activa y psicológicamente segura.',
+    'Existe una planificación de sucesión estructurada; los entrenadores dejan el grupo más fortalecidos, listos para roles de mayor responsabilidad. Se te busca para dar tu opinión sobre personal y sucesión.'
+  ]},
+  'l-operations': { en: [
+    'Reactive to conflicts. Resource allocation is unclear or contested.',
+    'Manages known conflicts. Resource allocation is developing but not always transparent, and complexity (travel, roster changes) still causes strain.',
+    'Anticipates conflicts across affiliates and levels. Resource allocation is transparent and fair.',
+    'Built systems and infrastructure that keep the department running at a high level even in your absence. Rare operational surprises as the department grows.'
+  ], es: [
+    'Reacciona ante los conflictos en lugar de anticiparlos. La asignación de recursos no es clara o genera disputas.',
+    'Maneja los conflictos conocidos. La asignación de recursos está en desarrollo, pero no siempre es transparente, y la complejidad (viajes, cambios de roster) todavía genera tensión.',
+    'Anticipa los conflictos entre afiliados y niveles. La asignación de recursos es transparente y justa.',
+    'Construiste sistemas e infraestructura que mantienen al departamento funcionando a un alto nivel incluso en tu ausencia. Las sorpresas operativas son poco frecuentes a medida que el departamento crece.'
+  ]},
+  'l-problem-solving': { en: [
+    'Problem-solving is reactive. Innovation is rare or entirely coach-driven.',
+    "Some systematic problem-solving. Innovation pathway is forming but inconsistent, and ideas outside the leader's own are not always welcomed.",
+    'Systematic, evidence-informed problem-solving that digs to root causes, not just symptoms. Innovation pathway visible and used by coaches.',
+    'Department is a proven engine of high-quality innovation beyond S&C itself. Other departments learn from your process.'
+  ], es: [
+    'La solución de problemas es reactiva. La innovación es poco frecuente o depende completamente de los entrenadores.',
+    'Existe cierta solución de problemas de forma sistemática. El camino hacia la innovación se está formando, pero es inconsistente, y las ideas ajenas al líder no siempre son bien recibidas.',
+    'Solución de problemas sistemática y fundamentada en evidencia que llega a las causas raíz, no solo a los síntomas. El camino hacia la innovación es visible y los entrenadores lo utilizan.',
+    'El departamento es un motor comprobado de innovación de alta calidad más allá del área de S&C. Otros departamentos aprenden de tu proceso.'
+  ]},
+  'l-modelling': { en: [
+    'Standards of professional behavior slip. Humility or growth mindset uneven under pressure.',
+    'Generally models the standards; comfortable taking feedback from above, less so from peers or staff.',
+    'Reliably models the professional behavior, standards, and growth mindset expected of staff, and actively seeks feedback from every direction.',
+    'Coaches point to your standards as the operating baseline. Humility and self-reflection are the expected norm, not an aspiration, because of how you behave.'
+  ], es: [
+    'Los estándares de comportamiento profesional fallan en ocasiones. La humildad o la mentalidad de crecimiento son inconsistentes bajo presión.',
+    'Generalmente modela los estándares esperados; se siente cómodo recibiendo retroalimentación de sus superiores, menos de sus colegas o del personal.',
+    'Modela de manera confiable el comportamiento profesional, los estándares y la mentalidad de crecimiento que se espera del personal, y busca activamente retroalimentación en todas direcciones.',
+    'Los entrenadores señalan tus estándares como la referencia operativa. La humildad y la autorreflexión son la norma esperada, no una aspiración, por la forma en que te comportas.'
+  ]},
+  'l-communication': { en: [
+    'Cross-departmental candor limited. Accountability applied inconsistently.',
+    'Communicates across departments; holds willing staff accountable but avoids it with resistant ones, and high-stakes conversations still tend to be avoided.',
+    'Candid cross-departmental communication. Holds accountability consistently across the staff.',
+    'Sets the standard for candor and accountability across the front office, including hard performance-management and change conversations. Trusted broker in hard rooms.'
+  ], es: [
+    'La franqueza entre departamentos es limitada. La responsabilidad se aplica de manera inconsistente.',
+    'Se comunica entre departamentos; exige responsabilidad al personal dispuesto, pero evita hacerlo con el resistente, y todavía tiende a evitar las conversaciones de alto riesgo.',
+    'Comunicación franca entre departamentos. Sostiene la responsabilidad de manera consistente en todo el personal.',
+    'Establece el estándar de franqueza y responsabilidad en toda la oficina principal, incluyendo conversaciones difíciles de gestión del desempeño y cambio organizacional. Es un mediador confiable en las conversaciones difíciles.'
+  ]},
+  'l-tech-governance': { en: [
+    'No department tech standards. Staff use of tech varies wildly.',
+    'Basic tech standards; staff adoption inconsistent across the group.',
+    'Clear tech standards. High staff adoption across AMS, VBT, force plates, GPS, and speed gates.',
+    'Tech governance is a competitive advantage, including leading procurement decisions. Adoption is uniform and expert-level.'
+  ], es: [
+    'No existen estándares tecnológicos departamentales. El uso de la tecnología por parte del personal varía enormemente.',
+    'Estándares tecnológicos básicos; la adopción por parte del personal es inconsistente dentro del grupo.',
+    'Estándares tecnológicos claros. Alta adopción por parte del personal en el AMS, el VBT, las plataformas de fuerza, el GPS y las puertas de velocidad (speed gates).',
+    'La gobernanza tecnológica es una ventaja competitiva, incluyendo liderar las decisiones de adquisición. La adopción es uniforme y de nivel experto.'
+  ]},
+  'l-data-infra': { en: [
+    'No reliable reporting infrastructure. Data-driven decisions are delayed or missing.',
+    'Basic reporting exists; some sport-relevance gaps in what gets surfaced.',
+    'Reliable reporting infrastructure turns data into sport-relevant decisions on cadence.',
+    'Reporting infrastructure sets the industry standard. Decisions are timely, precise, and shared.'
+  ], es: [
+    'No existe una infraestructura de reportes confiable. Las decisiones basadas en datos se retrasan o no se toman.',
+    'Existen reportes básicos; hay brechas de relevancia deportiva en lo que se presenta.',
+    'Una infraestructura de reportes confiable convierte los datos en decisiones relevantes para el deporte de manera constante.',
+    'La infraestructura de reportes establece el estándar de la industria. Las decisiones son oportunas, precisas y se comparten.'
+  ]},
+  'l-data-interp': { en: [
+    'Group-level patterns rarely spotted. Data used tactically only.',
+    'Some group-level pattern recognition. Insights inconsistently applied to decisions.',
+    'Group-level patterns drive scheduling, programming, and staffing decisions.',
+    'Predictive pattern recognition. Systemic decisions anticipate rather than react to trends.'
+  ], es: [
+    'Los patrones a nivel grupal rara vez se detectan. Los datos se utilizan únicamente de forma táctica.',
+    'Cierto reconocimiento de patrones a nivel grupal. Los hallazgos se aplican de manera inconsistente a las decisiones.',
+    'Los patrones a nivel grupal guían las decisiones de horario, programación y personal.',
+    'Reconocimiento predictivo de patrones. Las decisiones sistémicas anticipan las tendencias en lugar de reaccionar a ellas.'
+  ]},
+  'l-evidence': { en: [
+    'No research or case-study culture. Practice doesn’t evolve year-to-year.',
+    'Occasional research or case studies. Year-over-year evolution is slow.',
+    'Active research and case-study culture. Practice evolves annually with evidence.',
+    'Department is a research producer. Practices shift the field year-over-year.'
+  ], es: [
+    'No existe una cultura de investigación o estudios de caso. La práctica no evoluciona de un año a otro.',
+    'Investigación o estudios de caso ocasionales. La evolución de un año a otro es lenta.',
+    'Cultura activa de investigación y estudios de caso. La práctica evoluciona cada año con base en evidencia.',
+    'El departamento produce investigación propia. Sus prácticas transforman el campo año tras año.'
+  ]}
+};
+
+function levelAnchors(focusId, lang) {
+  const entry = LEVEL_ANCHORS[focusId];
+  if (!entry) return ['-', '-', '-', '-'];
+  const l = lang || activeLang();
+  return entry[l] || entry.en;
+}
+
+const BAND_LABELS = {
+  en: { 20: 'Needs work', 40: 'Developing', 60: 'Accomplished', 80: 'All-star' },
+  es: { 20: 'Necesita mejorar', 40: 'En desarrollo', 60: 'Competente', 80: 'Nivel All-Star' }
+};
+function bandLabel(anchor, lang) {
+  const l = lang || activeLang();
+  return (BAND_LABELS[l] || BAND_LABELS.en)[anchor];
+}
+
+//------------------------------------------------------------------------------
+// DEPARTMENT competency rollup (4 S&C competencies from the department card).
+// Detailed focuses map into these; the competency band is the AVERAGE of its
+// mapped focuses, so scoring the detailed items automatically produces the
+// department-level roll-up.
+//------------------------------------------------------------------------------
+const DEPT_COMPETENCIES = [
+  { id: 'dc-domain', name: { en: 'Domain-Specific Knowledge & Expertise', es: 'Conocimiento y Experticia Específica del Dominio' }, tag: 'Technical',
+    coachFocuses: ['warmups','strength','power','speed','fitness','assessment','program-design','sport-spec','evidence'],
+    leaderFocuses: ['l-program-standards','l-periodization','l-coaching-standards','l-sport-science']
+  },
+  { id: 'dc-influence', name: { en: 'Ability to Teach, Influence Behavior, & Build Relationships', es: 'Capacidad de Enseñar, Influir en el Comportamiento y Construir Relaciones' }, tag: 'Both',
+    coachFocuses: ['instruction','schedule','modelling','team-comm'],
+    leaderFocuses: ['l-staff-dev','l-operations','l-problem-solving','l-modelling','l-communication']
+  },
+  { id: 'dc-tech', name: { en: 'Technological Proficiency & Expert Tool User', es: 'Dominio Tecnológico y Uso Experto de Herramientas' }, tag: 'Technical',
+    coachFocuses: ['tech-data'],
+    leaderFocuses: ['l-tech-governance','l-data-infra']
+  },
+  { id: 'dc-data', name: { en: 'Data Analysis', es: 'Análisis de Datos' }, tag: 'Technical',
+    coachFocuses: ['tech-data','assessment','evidence','innovation','problem'],
+    leaderFocuses: ['l-data-interp','l-evidence']
+  }
+];
+
+//------------------------------------------------------------------------------
+// ORG competency rollup (BBOps Mid-Year Review Form).
+// - Universal: 5 competencies scored for everyone
+// - Culture: 1 competency scored for everyone
+// - People Management: 3 competencies scored ONLY for leaders / people managers
+// `group` is a stable internal id (not shown to users) - see GROUP_LABELS /
+// groupOrgComps() below for the bilingual display label.
+//------------------------------------------------------------------------------
+const ORG_COMPETENCIES = [
+  // Universal Red Sox Competencies (names + descriptions per the org playbook)
+  { id: 'oc-problem', group: 'universal', name: { en: 'Problem Solving', es: 'Solución de Problemas' },
+    description: { en: 'Identifies, analyzes, and solves problems in a process- and systems-oriented manner; thinks critically and strategically about problems; is solutions-oriented.',
+      es: 'Identifica, analiza y resuelve problemas de manera orientada a procesos y sistemas; piensa de forma crítica y estratégica sobre los problemas; está orientado a las soluciones.' },
+    coachFocuses: ['problem','innovation'],
+    leaderFocuses: ['l-problem-solving'] },
+  { id: 'oc-teamwork', group: 'universal', name: { en: 'Teamwork & Collaboration', es: 'Trabajo en Equipo y Colaboración' },
+    description: { en: "Works effectively with others; fosters a high-challenge and high-support environment; makes everyone feel valued and empowered to contribute; can 'disagree and commit'.",
+      es: "Trabaja de manera efectiva con los demás; fomenta un entorno de alta exigencia y alto apoyo; hace que todos se sientan valorados y empoderados para contribuir; es capaz de 'discrepar y comprometerse'." },
+    coachFocuses: ['team-comm','modelling'],
+    leaderFocuses: ['l-communication','l-modelling'] },
+  { id: 'oc-clarity', group: 'universal', name: { en: 'Clarity of Communication', es: 'Claridad de Comunicación' },
+    description: { en: "Communicates in a structured and organized manner, both verbal and written, to a wide range of audiences; demonstrates genuine interest and empathy to others' ideas, concerns, and feedback.",
+      es: 'Se comunica de manera estructurada y organizada, tanto de forma verbal como escrita, con una amplia variedad de audiencias; demuestra interés genuino y empatía hacia las ideas, inquietudes y comentarios de los demás.' },
+    coachFocuses: ['instruction','team-comm'],
+    leaderFocuses: ['l-communication','l-coaching-standards'] },
+  { id: 'oc-time', group: 'universal', name: { en: 'Time Management & Prioritization', es: 'Gestión del Tiempo y Priorización' },
+    description: { en: 'Deciphers between tasks based on their urgency and importance, and focuses on the highest-leverage priorities; sets and meets realistic goals and deadlines.',
+      es: 'Distingue entre tareas según su urgencia e importancia, y se enfoca en las prioridades de mayor impacto; establece y cumple metas y plazos realistas.' },
+    coachFocuses: ['schedule','modelling'],
+    leaderFocuses: ['l-operations','l-periodization'] },
+  { id: 'oc-acumen', group: 'universal', name: { en: 'Baseball Analytics & Player Development Acumen', es: 'Dominio de Analítica de Béisbol y Desarrollo de Jugadores' },
+    description: { en: 'Demonstrates working knowledge of modern baseball metrics and contemporary player development practices, serving as the organizational language for evaluating performance, strategy, decision-making, and development opportunities; applies a baseline understanding of key metrics and development methodologies in day-to-day responsibilities.',
+      es: 'Demuestra un conocimiento práctico de las métricas modernas del béisbol y de las prácticas contemporáneas de desarrollo de jugadores, que sirven como el lenguaje organizacional para evaluar el rendimiento, la estrategia, la toma de decisiones y las oportunidades de desarrollo; aplica una comprensión básica de las métricas clave y las metodologías de desarrollo en sus responsabilidades diarias.' },
+    coachFocuses: ['sport-spec','tech-data','evidence','assessment','strength','power','speed','fitness','program-design','warmups'],
+    leaderFocuses: ['l-sport-science','l-data-interp','l-tech-governance','l-data-infra','l-evidence','l-program-standards','l-periodization'] },
+  // Culture Alignment
+  { id: 'oc-culture', group: 'culture', name: { en: 'Embodying Our Organizational Culture', es: 'Encarnar Nuestra Cultura Organizacional' },
+    description: { en: "Embodies our organizational values of Honesty (being open, transparent, and respectful with yourself and others; willing to have difficult conversations), Humility (acknowledging mistakes, willing to ask for help, and exhibiting a growth mindset), and Relentlessness (continuously seeking new and improved ways of doing things, unwavering commitment to winning); proactively supports our organization's commitment to Diversity, Equity, Inclusion, and Belonging (DEI&B).",
+      es: 'Encarna nuestros valores organizacionales de Honestidad (ser abierto, transparente y respetuoso contigo mismo y con los demás; estar dispuesto a sostener conversaciones difíciles), Humildad (reconocer los errores, estar dispuesto a pedir ayuda y mostrar una mentalidad de crecimiento) y Tenacidad Implacable (buscar continuamente formas nuevas y mejores de hacer las cosas, con un compromiso inquebrantable con ganar); apoya de manera proactiva el compromiso de nuestra organización con la Diversidad, la Equidad, la Inclusión y la Pertenencia (DEI&B).' },
+    coachFocuses: ['modelling','team-comm'],
+    leaderFocuses: ['l-modelling','l-communication'] },
+  // People Management (leaders / people managers only)
+  { id: 'oc-inf-people', group: 'people', name: { en: 'Ability to Influence People', es: 'Capacidad de Influir en las Personas' }, leaderOnly: true,
+    description: { en: 'Builds trust and rapport with team members and others throughout the organization; inspires and motivates others; provides clear direction and empowers the team to achieve results; delivers honest feedback where achievements are recognized, and people are held accountable.',
+      es: 'Genera confianza y buena relación con los miembros del equipo y con otras personas en toda la organización; inspira y motiva a los demás; brinda una dirección clara y empodera al equipo para alcanzar resultados; entrega retroalimentación honesta en la que se reconocen los logros y se exige responsabilidad a las personas.' },
+    coachFocuses: [], leaderFocuses: ['l-staff-dev','l-modelling','l-communication'] },
+  { id: 'oc-inf-culture', group: 'people', name: { en: 'Ability to Influence Culture', es: 'Capacidad de Influir en la Cultura' }, leaderOnly: true,
+    description: { en: 'Embodies our organizational culture (Honesty, Humility, Relentlessness), and holds others accountable for their actions and behaviors; actively supports building diverse, equitable and inclusive teams by ensuring the use of inclusive hiring practices, identifying and eliminating barriers that hinder access and opportunities for advancement, creating a psychologically safe environment for all team members, being an active ally who challenges inappropriate or threatening behavior, among others.',
+      es: 'Encarna nuestra cultura organizacional (Honestidad, Humildad, Tenacidad Implacable) y exige responsabilidad a los demás por sus acciones y comportamientos; apoya activamente la construcción de equipos diversos, equitativos e inclusivos, asegurando el uso de prácticas de contratación inclusivas, identificando y eliminando las barreras que dificultan el acceso y las oportunidades de ascenso, creando un entorno psicológicamente seguro para todos los miembros del equipo, y siendo un aliado activo que confronta comportamientos inapropiados o amenazantes, entre otras acciones.' },
+    coachFocuses: [], leaderFocuses: ['l-modelling','l-communication','l-coaching-standards'] },
+  { id: 'oc-inf-process', group: 'people', name: { en: 'Ability to Influence Process', es: 'Capacidad de Influir en los Procesos' }, leaderOnly: true,
+    description: { en: 'Designs, integrates, and continuously improves processes in alignment to our organizational KPIs; influences and persuades within their immediate team and across the organization.',
+      es: 'Diseña, integra y mejora continuamente los procesos en alineación con nuestros KPI organizacionales; influye y persuade dentro de su equipo inmediato y en toda la organización.' },
+    coachFocuses: [], leaderFocuses: ['l-operations','l-problem-solving','l-tech-governance'] }
+];
+
+// Compute the averaged score for a rollup competency given the current role.
+function rollupScore(comp) {
+  const role = state.identity.role;
+  const focusIds = role === 'leader' ? comp.leaderFocuses : comp.coachFocuses;
+  const scores = focusIds.map(id => state.scores[id]).filter(v => v != null);
+  if (!scores.length) return null;
+  return Math.round(scores.reduce((a,b) => a + b, 0) / scores.length);
+}
+function priorRollupScore(comp) {
+  if (!state.shadow || !state.shadow.scores) return null;
+  const role = (state.shadow.identity && state.shadow.identity.role) || state.identity.role;
+  const focusIds = role === 'leader' ? comp.leaderFocuses : comp.coachFocuses;
+  const scores = focusIds.map(id => state.shadow.scores[id]).filter(v => v != null);
+  if (!scores.length) return null;
+  return Math.round(scores.reduce((a,b) => a + b, 0) / scores.length);
+}
+function orgCompsForRole() {
+  const role = state.identity.role;
+  return ORG_COMPETENCIES.filter(c => !c.leaderOnly || role === 'leader');
+}
+// Universal Red Sox Competencies and Culture Alignment render together as one
+// section so Culture Alignment sits alongside the other cards instead of
+// wrapping onto its own row. People Management (leader-only) stays separate.
+// Grouping is done by stable id; GROUP_LABELS supplies the bilingual text.
+const ORG_GROUP_MERGE = { 'universal': 'universal_culture', 'culture': 'universal_culture', 'people': 'people' };
+const GROUP_LABELS = {
+  universal_culture: { en: 'Universal Red Sox Competencies & Culture Alignment', es: 'Competencias Universales de Red Sox y Alineación Cultural' },
+  people: { en: 'People Management Competencies (for current people managers)', es: 'Competencias de Gestión de Personas (para gerentes de personal actuales)' }
+};
+function groupOrgComps(comps) {
+  const grouped = {};
+  const order = [];
+  comps.forEach(c => {
+    const groupId = ORG_GROUP_MERGE[c.group] || c.group;
+    if (!grouped[groupId]) { grouped[groupId] = []; order.push(groupId); }
+    grouped[groupId].push(c);
+  });
+  return order.map(groupId => ({ label: L(GROUP_LABELS[groupId]) || groupId, list: grouped[groupId] }));
+}
+// Nearest anchor of the four canonical levels. In-between values (30/50/70)
+// round DOWN to the more conservative anchor.
+function nearestAnchor(score) {
+  const anchors = [20, 40, 60, 80];
+  let best = anchors[0], bestD = Infinity;
+  anchors.forEach(a => { const d = Math.abs(a - score); if (d < bestD) { bestD = d; best = a; } });
+  return best;
+}
+function bandFor(score) {
+  const anchor = nearestAnchor(score);
+  return { anchor, label: bandLabel(anchor) };
+}
+// Which anchor columns to highlight for a given score. Intermediate values
+// (30 / 50 / 70) highlight BOTH surrounding anchors so the coach can see the
+// value is valid and sits between two levels.
+function highlightedAnchors(score) {
+  const map = { 20: [20], 30: [20, 40], 40: [40], 50: [40, 60], 60: [60], 70: [60, 80], 80: [80] };
+  return map[score] || [nearestAnchor(score)];
+}
+const BRIDGE_LABELS = {
+  en: { 20: 'Needs work', 30: 'Needs work to Developing', 40: 'Developing', 50: 'Developing to Accomplished',
+        60: 'Accomplished', 70: 'Accomplished to All-star', 80: 'All-star' },
+  es: { 20: 'Necesita mejorar', 30: 'Necesita mejorar a En desarrollo', 40: 'En desarrollo', 50: 'En desarrollo a Competente',
+        60: 'Competente', 70: 'Competente a Nivel All-Star', 80: 'Nivel All-Star' }
+};
+function bandLabelFor(score) {
+  const lang = activeLang();
+  const bridges = BRIDGE_LABELS[lang] || BRIDGE_LABELS.en;
+  return bridges[score] || bandLabel(nearestAnchor(score));
+}
+
+// Maps a 20-80 score onto the same red -> amber -> green -> navy gradient
+// used on the slider track, so review-page sections and charts read as one
+// visual language with the scoring UI.
+const SCORE_GRADIENT_STOPS = [
+  { s: 20, c: [163, 45, 45] },   // #A32D2D
+  { s: 40, c: [181, 128, 10] },  // #B5800A
+  { s: 60, c: [47, 122, 30] },   // #2F7A1E
+  { s: 80, c: [12, 35, 64] }     // var(--rs-navy) #0C2340
+];
+function scoreToColor(score, alpha) {
+  const clamped = Math.max(20, Math.min(80, score == null ? 20 : score));
+  let lo = SCORE_GRADIENT_STOPS[0], hi = SCORE_GRADIENT_STOPS[SCORE_GRADIENT_STOPS.length - 1];
+  for (let i = 0; i < SCORE_GRADIENT_STOPS.length - 1; i++) {
+    if (clamped >= SCORE_GRADIENT_STOPS[i].s && clamped <= SCORE_GRADIENT_STOPS[i + 1].s) {
+      lo = SCORE_GRADIENT_STOPS[i]; hi = SCORE_GRADIENT_STOPS[i + 1]; break;
+    }
+  }
+  const range = hi.s - lo.s || 1;
+  const t = (clamped - lo.s) / range;
+  const rgb = lo.c.map((v, i) => Math.round(v + (hi.c[i] - v) * t));
+  return alpha != null ? `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})` : `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+}
+
+//==============================================================================
+// RADAR / SPIDER CHARTS (plain inline SVG - no chart library, so it renders
+// identically in the browser and when rasterized into the PDF by html2canvas)
+//==============================================================================
+
+function wrapLabelLines(text, maxChars) {
+  const words = String(text).split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach(w => {
+    if ((cur + ' ' + w).trim().length > maxChars && cur) {
+      lines.push(cur.trim());
+      cur = w;
+    } else {
+      cur = (cur + ' ' + w).trim();
+    }
+  });
+  if (cur) lines.push(cur.trim());
+  return lines.slice(0, 3);
+}
+
+// items: [{ label, score, prior }]. Score/prior are 20-80 or null.
+function radarChartSvg(items, color) {
+  const n = items.length;
+  if (n < 3) return '';
+  const size = 400;
+  const cx = size / 2;
+  const cy = size / 2;
+  const maxR = 92;
+  const labelR = maxR + 42;
+  const levels = [20, 40, 60, 80];
+  const angleFor = (i) => -Math.PI / 2 + i * (2 * Math.PI / n);
+  const radiusFor = (score) => maxR * Math.max(0, Math.min(1, ((score == null ? 20 : score) - 20) / 60));
+  const pointFor = (i, score) => {
+    const r = radiusFor(score);
+    const a = angleFor(i);
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+
+  const rings = levels.map(lvl => {
+    const r = maxR * ((lvl - 20) / 60);
+    const pts = items.map((_, i) => {
+      const a = angleFor(i);
+      return (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1);
+    }).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="#D8DEE6" stroke-width="1" />`;
+  }).join('');
+
+  const axes = items.map((_, i) => {
+    const a = angleFor(i);
+    const x = (cx + maxR * Math.cos(a)).toFixed(1);
+    const y = (cy + maxR * Math.sin(a)).toFixed(1);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#D8DEE6" stroke-width="1" />`;
+  }).join('');
+
+  const hasPrior = items.some(it => it.prior != null);
+  let priorPoly = '';
+  if (hasPrior) {
+    const pts = items.map((it, i) => { const [x, y] = pointFor(i, it.prior); return x.toFixed(1) + ',' + y.toFixed(1); }).join(' ');
+    priorPoly = `<polygon points="${pts}" fill="none" stroke="#8B93A1" stroke-width="1.5" stroke-dasharray="5,4" />`;
+  }
+
+  const curPts = items.map((it, i) => { const [x, y] = pointFor(i, it.score); return x.toFixed(1) + ',' + y.toFixed(1); }).join(' ');
+  const fill = color || '#BD3039';
+  const curPoly = `<polygon points="${curPts}" fill="${fill}" fill-opacity="0.25" stroke="${fill}" stroke-width="2.5" />`;
+
+  const dots = items.map((it, i) => {
+    const [x, y] = pointFor(i, it.score);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="${scoreToColor(it.score)}" stroke="#ffffff" stroke-width="1.2" />`;
+  }).join('');
+
+  const labels = items.map((it, i) => {
+    const a = angleFor(i);
+    const x = (cx + labelR * Math.cos(a)).toFixed(1);
+    const y = cy + labelR * Math.sin(a);
+    const cosA = Math.cos(a);
+    const anchor = Math.abs(cosA) < 0.25 ? 'middle' : (cosA > 0 ? 'start' : 'end');
+    const lines = wrapLabelLines(it.label, 15);
+    const scoreText = it.score != null ? String(it.score) : (activeLang() === 'es' ? 'n/d' : 'n/a');
+    let tspans = lines.map((ln, li) => `<tspan x="${x}" dy="${li === 0 ? 0 : 12}">${esc(ln)}</tspan>`).join('');
+    tspans += `<tspan x="${x}" dy="14" font-weight="800" fill="${it.score != null ? scoreToColor(it.score) : '#8B93A1'}">${esc(scoreText)}</tspan>`;
+    return `<text x="${x}" y="${y.toFixed(1)}" text-anchor="${anchor}" font-size="10.5" font-weight="600" fill="#0C2340" font-family="-apple-system, Segoe UI, Roboto, sans-serif">${tspans}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    ${rings}${axes}${priorPoly}${curPoly}${dots}${labels}
+  </svg>`;
+}
+
+function deptRadarItems() {
+  return DEPT_COMPETENCIES.map(c => ({ label: L(c.name), score: rollupScore(c), prior: priorRollupScore(c) }));
+}
+function universalRadarItems() {
+  const comps = ORG_COMPETENCIES.filter(c => c.group !== 'people');
+  return comps.map(c => ({ label: L(c.name), score: rollupScore(c), prior: priorRollupScore(c) }));
+}
+
+// Shared renderer for both the review page and the PDF - identical markup so
+// the two views always match.
+function radarBlockHtml(title, note, items, color) {
+  const scored = items.filter(it => it.score != null).length;
+  if (scored < 3) {
+    return `<div class="rollup-block radar-block">
+      <h3>${esc(title)}</h3>
+      <div class="rollup-note">${esc(note)} ${esc(t('radarNeed3'))}</div>
+    </div>`;
+  }
+  const hasPrior = items.some(it => it.prior != null);
+  return `<div class="rollup-block radar-block">
+    <h3>${esc(title)}</h3>
+    <div class="rollup-note">${esc(note)}</div>
+    <div class="radar-wrap">${radarChartSvg(items, color)}</div>
+    ${hasPrior ? `<div class="radar-legend"><span><span class="rl-swatch" style="background:${color};"></span>${esc(t('thisCycle'))}</span><span><span class="rl-swatch rl-prior"></span>${esc(t('lastCycle'))}</span></div>` : ''}
+  </div>`;
+}
+
+// Helpers for competency-page organization
+function primaryDeptCompFor(focusId) {
+  return DEPT_COMPETENCIES.findIndex(c => {
+    const list = state.identity.role === 'leader' ? c.leaderFocuses : c.coachFocuses;
+    return list.indexOf(focusId) !== -1;
+  });
+}
+function focusesOnPage(deptCompIdx) {
+  return focusOrder().filter(f => primaryDeptCompFor(f.id) === deptCompIdx);
+}
+function deptCompsForFocus(focusId) {
+  return DEPT_COMPETENCIES.filter(c => {
+    const list = state.identity.role === 'leader' ? c.leaderFocuses : c.coachFocuses;
+    return list.indexOf(focusId) !== -1;
+  });
+}
+function orgCompsForFocus(focusId) {
+  return orgCompsForRole().filter(c => {
+    const list = state.identity.role === 'leader' ? c.leaderFocuses : c.coachFocuses;
+    return list.indexOf(focusId) !== -1;
+  });
+}
+
+//==============================================================================
+// STATE
+//==============================================================================
+
+const STORAGE_KEY = 'redsox-coach-reflection-v1';
+const DEFAULT_SCORE = 50;
+const PHASE_HINT_LOOKBACK = {
+  en: 'What went well? What patterns showed up? What surprised you? Where were the wins and where did you hit a ceiling?',
+  es: '¿Qué salió bien? ¿Qué patrones aparecieron? ¿Qué te sorprendió? ¿Dónde estuvieron las victorias y dónde encontraste un techo?'
+};
+const PHASE_HINT_LOOKAHEAD = {
+  en: 'What are the 2-3 areas you want to move most in the phase ahead? What conditions need to be in place? What is the first step?',
+  es: '¿Cuáles son las 2 o 3 áreas que más quieres avanzar en la siguiente fase? ¿Qué condiciones deben estar en su lugar? ¿Cuál es el primer paso?'
+};
+
+let state = {
+  stage: 0,               // 0 = language, 1 = welcome, 2 = setup, 3..N+2 = focus sections, N+3 = looking back, N+4 = looking ahead, N+5 = review, N+6 = confirm
+  lang: null,             // 'en' | 'es' - chosen once on the language screen, holds for the whole session (instructions through to the printed PDF)
+  identity: {
+    name: '',
+    team: '',
+    role: '',             // 'coach' | 'leader'
+    date: new Date().toISOString().slice(0,10)
+  },
+  scores: {},             // focusId -> number
+  comments: {},           // focusId -> string
+  lookingBack: '',
+  lookingAhead: '',
+  submittedAt: null,
+  shadow: null            // prior-cycle assessment loaded via drop zone; shape matches JSON companion
+};
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.identity) state = { ...state, ...parsed };
+    }
+  } catch (e) {}
+}
+function saveDraft() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const el = document.getElementById('autosave');
+    if (el) { el.classList.add('show'); clearTimeout(saveDraft._t); saveDraft._t = setTimeout(() => el.classList.remove('show'), 900); }
+  } catch (e) {}
+}
+function clearDraft() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+
+function framework() {
+  return state.identity.role === 'leader' ? LEADER_FRAMEWORK : COACH_FRAMEWORK;
+}
+function focusOrder() {
+  return framework().flatMap(p => p.focuses.map(f => ({ ...f, pillarId: p.id, pillarName: p.name })));
+}
+
+// Fixed stage map (single competency page per department competency).
+// 0 language, 1 welcome, 2 setup, 3..6 dept competency pages (4), 7 look back, 8 look ahead, 9 review, 10 confirm
+const STAGE = {
+  LANG: 0, WELCOME: 1, SETUP: 2,
+  DEPT_1: 3, DEPT_2: 4, DEPT_3: 5, DEPT_4: 6,
+  LOOK_BACK: 7, LOOK_AHEAD: 8, REVIEW: 9, CONFIRM: 10
+};
+const TOTAL_STAGES = 11;
+
+//==============================================================================
+// RENDER
+//==============================================================================
+
+function el(id) { return document.getElementById(id); }
+
+function render() {
+  const app = el('app');
+  const s = state.stage;
+  if (s === STAGE.LANG) return renderLangSelect(app);
+  if (s === STAGE.WELCOME) return renderWelcome(app);
+  if (s === STAGE.SETUP) return renderSetup(app);
+  if (s >= STAGE.DEPT_1 && s <= STAGE.DEPT_4) return renderCompetencyPage(app, s - STAGE.DEPT_1);
+  if (s === STAGE.LOOK_BACK) return renderLookBack(app);
+  if (s === STAGE.LOOK_AHEAD) return renderLookAhead(app);
+  if (s === STAGE.REVIEW) return renderReview(app);
+  if (s === STAGE.CONFIRM) return renderConfirm(app);
+}
+
+function renderLangSelect(app) {
+  app.innerHTML = `
+    <div class="card" style="text-align: center; padding: 48px 28px;">
+      <div class="label-chip">Boston Red Sox &middot; Performance</div>
+      <h1 style="margin-bottom: 18px;">Choose your language / Elige tu idioma</h1>
+      <p class="muted" style="max-width: 480px; margin: 0 auto 28px;">
+        This sets the language for the whole assessment, from instructions to the final PDF.<br>
+        Esto define el idioma de toda la evaluación, desde las instrucciones hasta el PDF final.
+      </p>
+      <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-big" onclick="chooseLang('en')" style="min-width: 220px;">Continue in English</button>
+        <button class="btn btn-primary btn-big" onclick="chooseLang('es')" style="min-width: 220px;">Continuar en Español</button>
+      </div>
+    </div>
+  `;
+}
+function chooseLang(lang) {
+  state.lang = lang;
+  saveDraft();
+  advance();
+}
+window.chooseLang = chooseLang;
+
+function progressBar(current, total, label) {
+  const pct = Math.max(0, Math.min(100, (current / total) * 100));
+  return `
+    <div class="progress-label">
+      <span>${label}</span>
+      <span>${current} of ${total}</span>
+    </div>
+    <div class="progress"><div class="progress-fill" style="width: ${pct}%"></div></div>
+  `;
+}
+
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// renderLang lets PDF generation temporarily render in a language other than
+// state.lang (used for the Spanish session's English mirror section) without
+// threading a lang argument through every helper. L()/t()/bandLabel() etc.
+// all resolve against renderLang first, falling back to state.lang.
+let renderLang = null;
+function activeLang() { return renderLang || state.lang || 'en'; }
+
+// UI chrome copy. Framework/competency content lives alongside its data
+// (COACH_FRAMEWORK, LEVEL_ANCHORS, ORG_COMPETENCIES, etc.) - this dictionary
+// covers everything else: instructions, labels, buttons, alerts.
+const I18N = {
+  en: {
+    welcomeChip: 'Coach Performance',
+    welcomeTitle: 'Self-assessment & reflection',
+    welcomeP1: 'This is a <b>performance assessment and reflection tool</b> to identify the focus areas that will most move your development in the phases ahead - both off-season and in-season.',
+    welcomeP2: 'You will score yourself across the professional framework on a 20-80 scale, using a guide that describes what each level looks like. You will add comments below each score to capture context. At the end you will reflect on the phase just completed and the phase directly ahead.',
+    roleCoachLabel: 'Coach / Practitioner',
+    roleLeaderLabel: 'Department Leadership',
+    priorLoaded: 'Prior assessment loaded:',
+    clearBtn: 'Clear',
+    dropzoneTitle: 'Import your last completed assessment (optional)',
+    dropzoneHint: 'Drop the small <b>data file you saved last cycle</b> (or an older PDF that still has it embedded), or click to browse. Your prior scores and comments will appear on every focus area as a reference. No history is stored on any server.',
+    howItWorksTitle: 'How this works - step by step',
+    step1: '<b>Enter your name, team, and role.</b> Coach / Practitioner or Department Leadership determines which framework loads.',
+    step2: '<b>Work through every focus area in order.</b> Score yourself with the slider (moves in blocks of 10 between 20 and 80). The guide below shows what each level looks like - it is an anchor, not an exact description.',
+    step3: '<b>Add a short comment</b> under each score to capture context: what is driving the score, what is the next step.',
+    step4: '<b>Reflect on the phase just completed</b> (Looking Back) <b>and the phase directly ahead</b> (Looking Ahead). Free-flowing notes.',
+    step5: '<b>Review every answer.</b> Hit <b>Edit</b> on any section to go back and adjust.',
+    step6: '<b>Confirm and download your PDF.</b> Submit the PDF to Leadership and bring a printed copy to your 1:1 conversation.',
+    knowTitle: 'A few things to know before you start',
+    know1: '<b>Your progress saves automatically</b> as you type. You can close the tab and come back later on the same device.',
+    know2: '<b>Everything saves on your own device, not online.</b> If you switch to another computer or clear your browser data, your draft will not follow you.',
+    know3: '<b>The PDF is generated only at the end.</b> Once you download it, that PDF becomes the record you share.',
+    know4: "Takes about <b>20-30 minutes</b>. Do it in one sitting if you can, but you don't have to.",
+    refChartsLabel: 'Reference charts (print & keep)',
+    beginBtn: 'Begin',
+    stepPrefix: 'Step',
+    ofWord: 'of',
+    setupTitle: 'Tell us who you are',
+    setupSub: 'This information appears at the top of your assessment PDF.',
+    yourNameLabel: 'Your name',
+    namePlaceholder: 'First and last name',
+    teamLabel: 'Team / affiliate',
+    teamPlaceholder: 'e.g. Portland Sea Dogs, MLB, Rehab',
+    roleForAssessment: 'Role for this assessment',
+    roleCoachSub: 'Delivery-focused. 16 focus areas across performance knowledge, coaching effectiveness, and universal competencies.',
+    roleLeaderSub: 'Leadership-focused. 13 focus areas across domain expertise, relationships, tech, and data.',
+    backBtn: 'Back',
+    continueBtn: 'Continue',
+    pleaseAdd: 'Please add:',
+    fieldName: 'name', fieldTeam: 'team', fieldRole: 'role',
+    competencyLabel: 'Competency',
+    deptCompetencyChip: 'Department competency',
+    competencyPageSub: 'Score each focus area that makes up this competency. All values (20, 30, 40, 50, 60, 70, 80) are valid choices. Move each slider to the level that best fits, add a short comment below, then continue.',
+    capLegendDeptLabel: 'Department', capLegendDeptText: 'competency this focus feeds',
+    capLegendOrgLabel: 'Organization', capLegendOrgText: 'competency this focus feeds',
+    continueToReflection: 'Continue to reflection',
+    nextCompetency: 'Next competency',
+    scaleLabel: '20 to 80 scale',
+    levelGuideHeader: 'Level guide - what this looks like',
+    levelGuideNote: 'a guide, not an exact description',
+    commentsLabel: 'Comments & context',
+    commentsPlaceholder: 'What is driving your score? What are the wins? Where are the gaps? What is the next step?',
+    reflectionProgressLabel: 'Reflection',
+    lookBackChip: 'Looking Back',
+    lookBackTitle: 'Looking back at the phase just completed',
+    yourReflectionLabel: 'Your reflection',
+    reflectionPlaceholder: 'Type freely. This ends up on the last page of your PDF.',
+    continueToLookAhead: 'Continue to "Looking ahead"',
+    lookAheadChip: 'Looking Ahead',
+    lookAheadTitle: 'Looking ahead at the phase directly ahead',
+    reviewAnswersBtn: 'Review my answers',
+    reviewChip: 'Review before you finish',
+    reviewTitle: 'Check your answers',
+    reviewSub: 'Scroll through everything. Hit <b>Edit</b> on any section to go back and adjust. When you are happy, hit <b>Confirm and generate PDF</b> at the bottom.',
+    deptRollupTitle: 'Department competencies (S&amp;C)',
+    deptRollupNote: 'The four department competencies. Each score is the average of the detailed focus scores that map to it.',
+    orgRollupTitle: 'Organization competencies (BBOps mid-year framework)',
+    orgRollupNote: 'Cross-departmental competencies from the BBOps Mid-Year Review Form. Each is averaged from the detailed focuses that speak to that competency for your role.',
+    detailedScoresTitle: 'Detailed scores',
+    editBtn: 'Edit',
+    noCommentAdded: 'No comment added.',
+    lastCycleLabel: 'Last cycle:',
+    noChange: 'no change',
+    reflectionSectionLabel: 'Reflection',
+    lookingBackLabel: 'Looking back',
+    lookingAheadLabel: 'Looking ahead',
+    noReflectionAdded: 'No reflection added.',
+    confirmGeneratePdf: 'Confirm and generate PDF',
+    radarNeed3: 'Score at least 3 areas here to see this plotted as a radar chart.',
+    thisCycle: 'This cycle',
+    lastCycle: 'Last cycle',
+    deptRadarTitle: 'Department competencies - at a glance',
+    deptRadarNote: 'The four S&amp;C department competencies plotted together.',
+    universalRadarNote: 'The five universal competencies plus culture alignment, plotted together.',
+    avgOf: 'avg of',
+    avgWord: 'avg',
+    focusWord: 'focus', focusesWord: 'focuses',
+    wasWord: 'was',
+    noScoredFocuses: 'no scored focuses',
+    confirmCompleteTitle: 'Assessment complete',
+    thankYouTemplate: 'Thank you, {name}. Download your PDF below - it opens your browser\'s print dialog, where you should choose <b>Save as PDF</b> (or <b>Microsoft Print to PDF</b>) as the destination.',
+    defaultCoachWord: 'coach',
+    downloadPdfBtn: 'Download PDF',
+    saveDataFileBtn: 'Save data file for next cycle',
+    nextStepsLabel: 'Next steps',
+    nextStep1: '<b>Submit the PDF to Leadership.</b>',
+    nextStep2: '<b>Bring a printed copy to your 1:1 conversation.</b>',
+    nextStep3: "<b>Save the small data file</b> somewhere you'll find it - drop it back into this tool next cycle to see this cycle's scores as reference points.",
+    reminderLabel: 'Reminder:',
+    reminderText: 'your results were saved to <b>this device only</b>. They were <b>not</b> uploaded anywhere. The PDF is the record for Leadership; the data file is just for this tool to show your prior scores next cycle - it is not needed for anything else.',
+    esOnlyReminder: 'Because you completed this in Spanish, the PDF includes a Spanish copy of your assessment followed by an English mirror of the same scores and framework (your written comments and reflections stay in the language you wrote them, clearly labeled). <b>Print or save the full PDF and email it to Leadership</b> so both language sections reach them in one file.',
+    submittedLabel: 'Submitted',
+    backToReview: 'Back to review',
+    startNewBtn: 'Start a new assessment',
+    coachFieldLabel: 'Coach',
+    teamFieldLabel: 'Team / affiliate',
+    roleFieldLabel: 'Role',
+    dateFieldLabel: 'Assessment date',
+    execSummary: 'Executive summary',
+    overallAverage: 'Overall average:',
+    detailedScoresComments: 'Detailed scores & comments',
+    reflectionLookBackTitle: 'Reflection - Looking back',
+    reflectionLookAheadTitle: 'Reflection - Looking ahead',
+    noReflectionProvided: '(No reflection provided.)',
+    pdfTitle: 'Coach Performance Self-Assessment & Reflection',
+    pdfSubmitted: 'Submitted',
+    pdfFooter: 'Boston Red Sox &middot; Performance &middot; Coach Performance Self-Assessment &amp; Reflection Tool',
+    orgName: 'Boston Red Sox &middot; Performance',
+    yourCommentLastCycle: 'Your comment last cycle',
+    alertBadPdf: 'Could not read a prior assessment from that PDF - only PDFs from an older version of this tool carry that data. Drop the small .json data file you saved last cycle instead.',
+    alertBadFile: 'That file does not look like a coach reflection. Please drop the data file (.json) you saved last cycle.',
+    alertBadFileRead: 'Could not read that file:',
+    confirmRemovePrior: 'Remove the imported prior assessment?',
+    confirmStartNew: 'Start a new assessment? This clears the current one.',
+    openingPrintDialog: 'Opening print dialog...',
+    downloadPdfAgain: 'Download PDF again',
+    printDialogErrorPrefix: 'Could not open the print dialog:',
+    printDialogErrorSuffix: 'Use your browser menu > Print, then choose "Save as PDF".',
+    mirrorNote: 'written in Spanish'
+  },
+  es: {
+    welcomeChip: 'Rendimiento del Entrenador',
+    welcomeTitle: 'Autoevaluación y reflexión',
+    welcomeP1: 'Esta es una <b>herramienta de evaluación de rendimiento y reflexión</b> para identificar las áreas de enfoque que más impulsarán tu desarrollo en las fases que vienen, tanto en la temporada baja como durante la temporada.',
+    welcomeP2: 'Te calificarás a ti mismo en el marco profesional en una escala de 20 a 80, usando una guía que describe cómo se ve cada nivel. Agregarás comentarios debajo de cada puntuación para dar contexto. Al final reflexionarás sobre la fase que acabas de completar y la fase que tienes justo por delante.',
+    roleCoachLabel: 'Entrenador / Practicante',
+    roleLeaderLabel: 'Liderazgo Departamental',
+    priorLoaded: 'Evaluación anterior cargada:',
+    clearBtn: 'Borrar',
+    dropzoneTitle: 'Importa tu última evaluación completada (opcional)',
+    dropzoneHint: 'Arrastra el pequeño <b>archivo de datos que guardaste el ciclo pasado</b> (o un PDF anterior que todavía lo tenga incrustado), o haz clic para buscarlo. Tus puntuaciones y comentarios anteriores aparecerán en cada área de enfoque como referencia. No se guarda ningún historial en ningún servidor.',
+    howItWorksTitle: 'Cómo funciona esto - paso a paso',
+    step1: '<b>Ingresa tu nombre, equipo y rol.</b> Entrenador / Practicante o Liderazgo Departamental determina qué marco se carga.',
+    step2: '<b>Recorre cada área de enfoque en orden.</b> Califícate con el control deslizante (se mueve en bloques de 10 entre 20 y 80). La guía de abajo muestra cómo se ve cada nivel - es una referencia, no una descripción exacta.',
+    step3: '<b>Agrega un comentario breve</b> debajo de cada puntuación para dar contexto: qué está impulsando la puntuación, cuál es el siguiente paso.',
+    step4: '<b>Reflexiona sobre la fase recién completada</b> (Mirando Atrás) <b>y sobre la fase directamente por delante</b> (Mirando Adelante). Notas libres.',
+    step5: '<b>Revisa cada respuesta.</b> Presiona <b>Editar</b> en cualquier sección para volver y ajustar.',
+    step6: '<b>Confirma y descarga tu PDF.</b> Envía el PDF a Liderazgo y lleva una copia impresa a tu conversación individual.',
+    knowTitle: 'Algunas cosas que debes saber antes de comenzar',
+    know1: '<b>Tu progreso se guarda automáticamente</b> mientras escribes. Puedes cerrar la pestaña y volver más tarde en el mismo dispositivo.',
+    know2: '<b>Todo se guarda en tu propio dispositivo, no en línea.</b> Si cambias a otra computadora o borras los datos de tu navegador, tu borrador no te seguirá.',
+    know3: '<b>El PDF se genera solo al final.</b> Una vez que lo descargues, ese PDF se convierte en el registro que compartes.',
+    know4: 'Toma alrededor de <b>20 a 30 minutos</b>. Hazlo en una sola sesión si puedes, pero no es obligatorio.',
+    refChartsLabel: 'Cuadros de referencia (imprime y guarda)',
+    beginBtn: 'Comenzar',
+    stepPrefix: 'Paso',
+    ofWord: 'de',
+    setupTitle: 'Cuéntanos quién eres',
+    setupSub: 'Esta información aparece en la parte superior de tu PDF de evaluación.',
+    yourNameLabel: 'Tu nombre',
+    namePlaceholder: 'Nombre y apellido',
+    teamLabel: 'Equipo / afiliado',
+    teamPlaceholder: 'ej. Portland Sea Dogs, MLB, Rehabilitación',
+    roleForAssessment: 'Rol para esta evaluación',
+    roleCoachSub: 'Enfocado en la ejecución. 16 áreas de enfoque en conocimiento de rendimiento, efectividad como entrenador y competencias universales.',
+    roleLeaderSub: 'Enfocado en el liderazgo. 13 áreas de enfoque en experticia técnica, relaciones, tecnología y datos.',
+    backBtn: 'Atrás',
+    continueBtn: 'Continuar',
+    pleaseAdd: 'Por favor agrega:',
+    fieldName: 'nombre', fieldTeam: 'equipo', fieldRole: 'rol',
+    competencyLabel: 'Competencia',
+    deptCompetencyChip: 'Competencia departamental',
+    competencyPageSub: 'Califica cada área de enfoque que compone esta competencia. Todos los valores (20, 30, 40, 50, 60, 70, 80) son opciones válidas. Mueve cada control deslizante al nivel que mejor se ajuste, agrega un comentario breve debajo y luego continúa.',
+    capLegendDeptLabel: 'Departamental', capLegendDeptText: 'competencia que alimenta esta área',
+    capLegendOrgLabel: 'Organizacional', capLegendOrgText: 'competencia que alimenta esta área',
+    continueToReflection: 'Continuar a la reflexión',
+    nextCompetency: 'Siguiente competencia',
+    scaleLabel: 'Escala de 20 a 80',
+    levelGuideHeader: 'Guía de niveles - cómo se ve esto',
+    levelGuideNote: 'una guía, no una descripción exacta',
+    commentsLabel: 'Comentarios y contexto',
+    commentsPlaceholder: '¿Qué está impulsando tu puntuación? ¿Cuáles son los logros? ¿Dónde están las brechas? ¿Cuál es el siguiente paso?',
+    reflectionProgressLabel: 'Reflexión',
+    lookBackChip: 'Mirando Atrás',
+    lookBackTitle: 'Mirando atrás en la fase recién completada',
+    yourReflectionLabel: 'Tu reflexión',
+    reflectionPlaceholder: 'Escribe libremente. Esto termina en la última página de tu PDF.',
+    continueToLookAhead: 'Continuar a "Mirando adelante"',
+    lookAheadChip: 'Mirando Adelante',
+    lookAheadTitle: 'Mirando adelante en la fase directamente por delante',
+    reviewAnswersBtn: 'Revisar mis respuestas',
+    reviewChip: 'Revisa antes de terminar',
+    reviewTitle: 'Revisa tus respuestas',
+    reviewSub: 'Recorre todo. Presiona <b>Editar</b> en cualquier sección para volver y ajustar. Cuando estés conforme, presiona <b>Confirmar y generar PDF</b> al final.',
+    deptRollupTitle: 'Competencias departamentales (S&amp;C)',
+    deptRollupNote: 'Las cuatro competencias departamentales. Cada puntuación es el promedio de las puntuaciones detalladas que corresponden a ella.',
+    orgRollupTitle: 'Competencias organizacionales (marco BBOps de medio año)',
+    orgRollupNote: 'Competencias entre departamentos del formulario BBOps de Revisión de Medio Año. Cada una se promedia a partir de las áreas de enfoque detalladas que corresponden a esa competencia para tu rol.',
+    detailedScoresTitle: 'Puntuaciones detalladas',
+    editBtn: 'Editar',
+    noCommentAdded: 'No se agregó comentario.',
+    lastCycleLabel: 'Ciclo anterior:',
+    noChange: 'sin cambio',
+    reflectionSectionLabel: 'Reflexión',
+    lookingBackLabel: 'Mirando atrás',
+    lookingAheadLabel: 'Mirando adelante',
+    noReflectionAdded: 'No se agregó reflexión.',
+    confirmGeneratePdf: 'Confirmar y generar PDF',
+    radarNeed3: 'Puntúa al menos 3 áreas aquí para ver esto en un gráfico de radar.',
+    thisCycle: 'Este ciclo',
+    lastCycle: 'Ciclo anterior',
+    deptRadarTitle: 'Competencias departamentales - de un vistazo',
+    deptRadarNote: 'Las cuatro competencias departamentales de S&amp;C juntas en un gráfico.',
+    universalRadarNote: 'Las cinco competencias universales más la alineación cultural, juntas en un gráfico.',
+    avgOf: 'promedio de',
+    avgWord: 'prom.',
+    focusWord: 'área', focusesWord: 'áreas',
+    wasWord: 'era',
+    noScoredFocuses: 'sin áreas puntuadas',
+    confirmCompleteTitle: 'Evaluación completa',
+    thankYouTemplate: 'Gracias, {name}. Descarga tu PDF abajo - se abrirá el cuadro de impresión de tu navegador, donde debes elegir <b>Guardar como PDF</b> (o <b>Microsoft Print to PDF</b>) como destino.',
+    defaultCoachWord: 'entrenador',
+    downloadPdfBtn: 'Descargar PDF',
+    saveDataFileBtn: 'Guardar archivo de datos para el próximo ciclo',
+    nextStepsLabel: 'Próximos pasos',
+    nextStep1: '<b>Envía el PDF a Liderazgo.</b>',
+    nextStep2: '<b>Lleva una copia impresa a tu conversación individual.</b>',
+    nextStep3: '<b>Guarda el pequeño archivo de datos</b> en algún lugar donde lo encuentres - vuelve a colocarlo en esta herramienta el próximo ciclo para ver las puntuaciones de este ciclo como referencia.',
+    reminderLabel: 'Recordatorio:',
+    reminderText: 'tus resultados se guardaron <b>solo en este dispositivo</b>. <b>No</b> se subieron a ningún lado. El PDF es el registro para Liderazgo; el archivo de datos es solo para que esta herramienta muestre tus puntuaciones anteriores el próximo ciclo - no se necesita para nada más.',
+    esOnlyReminder: 'Como completaste esto en español, el PDF incluye una copia en español de tu evaluación seguida de un espejo en inglés de las mismas puntuaciones y marco (tus comentarios y reflexiones escritos se mantienen en el idioma en que los escribiste, claramente etiquetados). <b>Imprime o guarda el PDF completo y envíalo por correo a Liderazgo</b> para que ambas secciones de idioma les lleguen en un solo archivo.',
+    submittedLabel: 'Enviado',
+    backToReview: 'Volver a la revisión',
+    startNewBtn: 'Comenzar una nueva evaluación',
+    coachFieldLabel: 'Entrenador',
+    teamFieldLabel: 'Equipo / afiliado',
+    roleFieldLabel: 'Rol',
+    dateFieldLabel: 'Fecha de evaluación',
+    execSummary: 'Resumen ejecutivo',
+    overallAverage: 'Promedio general:',
+    detailedScoresComments: 'Puntuaciones y comentarios detallados',
+    reflectionLookBackTitle: 'Reflexión - Mirando atrás',
+    reflectionLookAheadTitle: 'Reflexión - Mirando adelante',
+    noReflectionProvided: '(No se proporcionó reflexión.)',
+    pdfTitle: 'Autoevaluación y Reflexión de Rendimiento del Entrenador',
+    pdfSubmitted: 'Enviado el',
+    pdfFooter: 'Boston Red Sox &middot; Rendimiento &middot; Herramienta de Autoevaluación y Reflexión del Entrenador',
+    orgName: 'Boston Red Sox &middot; Rendimiento',
+    yourCommentLastCycle: 'Tu comentario del ciclo anterior',
+    alertBadPdf: 'No se pudo leer una evaluación anterior de ese PDF - solo los PDF de una versión anterior de esta herramienta llevan esos datos. Arrastra en su lugar el pequeño archivo de datos .json que guardaste el ciclo pasado.',
+    alertBadFile: 'Ese archivo no parece ser una reflexión de entrenador. Arrastra el archivo de datos (.json) que guardaste el ciclo pasado.',
+    alertBadFileRead: 'No se pudo leer ese archivo:',
+    confirmRemovePrior: '¿Eliminar la evaluación anterior importada?',
+    confirmStartNew: '¿Comenzar una nueva evaluación? Esto borra la actual.',
+    openingPrintDialog: 'Abriendo cuadro de impresión...',
+    downloadPdfAgain: 'Descargar PDF de nuevo',
+    printDialogErrorPrefix: 'No se pudo abrir el cuadro de impresión:',
+    printDialogErrorSuffix: 'Usa el menú de tu navegador > Imprimir, y luego elige "Guardar como PDF".',
+    mirrorNote: 'escrito en español'
+  }
+};
+function t(key, langOverride) {
+  const lang = langOverride || activeLang();
+  return (I18N[lang] && I18N[lang][key] != null) ? I18N[lang][key] : (I18N.en[key] != null ? I18N.en[key] : key);
+}
+
+function renderWelcome(app) {
+  const shadowChip = state.shadow ? `
+    <div class="shadow-chip">
+      <span>${esc(t('priorLoaded'))} <b>${esc(state.shadow.identity.name || 'unknown')}</b> &middot; ${esc(state.shadow.identity.role === 'leader' ? t('roleLeaderLabel') : t('roleCoachLabel'))} &middot; ${esc(state.shadow.identity.date || state.shadow.submittedAt || '')}</span>
+      <button class="sc-clear" onclick="clearShadow()">${esc(t('clearBtn'))}</button>
+    </div>
+  ` : '';
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="label-chip">${esc(t('welcomeChip'))}</div>
+      <h1>${esc(t('welcomeTitle'))}</h1>
+      <p>${t('welcomeP1')}</p>
+      <p>${t('welcomeP2')}</p>
+
+      ${shadowChip}
+      ${state.shadow ? '' : `
+        <div class="dropzone" id="prior-drop">
+          <div class="dz-title">${esc(t('dropzoneTitle'))}</div>
+          <div class="dz-hint">${t('dropzoneHint')}</div>
+          <input type="file" accept="application/pdf,.pdf,application/json,.json" id="prior-file" style="display: none">
+        </div>
+      `}
+
+      <h3>${esc(t('howItWorksTitle'))}</h3>
+      <ol style="margin: 6px 0 14px 22px; padding: 0; color: var(--ink-soft); font-size: 14px; line-height: 1.7;">
+        <li>${t('step1')}</li>
+        <li>${t('step2')}</li>
+        <li>${t('step3')}</li>
+        <li>${t('step4')}</li>
+        <li>${t('step5')}</li>
+        <li>${t('step6')}</li>
+      </ol>
+
+      <div style="padding: 12px 14px; background: #FFF6F7; border-left: 4px solid var(--rs-red); border-radius: 4px; margin: 14px 0 18px; font-size: 13px; color: var(--ink);">
+        <b style="color: var(--rs-red)">${esc(t('knowTitle'))}</b>
+        <ul style="margin: 6px 0 0 20px; padding: 0; line-height: 1.6;">
+          <li>${t('know1')}</li>
+          <li>${t('know2')}</li>
+          <li>${t('know3')}</li>
+          <li>${t('know4')}</li>
+        </ul>
+      </div>
+
+      <div class="nav-row" style="justify-content: space-between; align-items: center;">
+        <div class="ref-row">
+          <div class="ref-row-label">${esc(t('refChartsLabel'))}</div>
+          <a class="btn btn-ref" href="coach_framework_reference_en.pdf" download title="Coach / Practitioner framework - English">Coaches - ENG</a>
+          <a class="btn btn-ref" href="coach_framework_reference_es.pdf" download title="Coach / Practitioner framework - Spanish">Coaches - ESP</a>
+          <a class="btn btn-ref" href="leader_framework_reference_en.pdf" download title="Department Leadership framework - English">Leadership - ENG</a>
+          <a class="btn btn-ref" href="leader_framework_reference_es.pdf" download title="Department Leadership framework - Spanish">Leadership - ESP</a>
+        </div>
+        <button class="btn btn-primary btn-big" onclick="advance()">${esc(t('beginBtn'))}</button>
+      </div>
+    </div>
+  `;
+  initDropZone();
+}
+
+function renderSetup(app) {
+  app.innerHTML = `
+    <div class="card">
+      <div class="label-chip">${esc(t('stepPrefix'))} 1 ${esc(t('ofWord'))} ${TOTAL_STAGES - 1}</div>
+      <h1>${esc(t('setupTitle'))}</h1>
+      <p class="muted">${esc(t('setupSub'))}</p>
+      <label for="f-name">${esc(t('yourNameLabel'))}</label>
+      <input type="text" id="f-name" value="${esc(state.identity.name)}" placeholder="${esc(t('namePlaceholder'))}" autocomplete="off">
+      <label for="f-team">${esc(t('teamLabel'))}</label>
+      <input type="text" id="f-team" value="${esc(state.identity.team)}" placeholder="${esc(t('teamPlaceholder'))}" autocomplete="off">
+      <label>${esc(t('roleForAssessment'))}</label>
+      <div class="role-picker">
+        <button type="button" class="role-opt ${state.identity.role === 'coach' ? 'selected' : ''}" onclick="setRole('coach')">
+          <div class="ro-title">${esc(t('roleCoachLabel'))}</div>
+          <div class="ro-sub">${esc(t('roleCoachSub'))}</div>
+        </button>
+        <button type="button" class="role-opt ${state.identity.role === 'leader' ? 'selected' : ''}" onclick="setRole('leader')">
+          <div class="ro-title">${esc(t('roleLeaderLabel'))}</div>
+          <div class="ro-sub">${esc(t('roleLeaderSub'))}</div>
+        </button>
+      </div>
+      <div id="setup-err" style="color: var(--bad); font-size: 13px; min-height: 18px; margin-top: 6px;"></div>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goBack()">${esc(t('backBtn'))}</button>
+        <button class="btn btn-primary" onclick="confirmSetup()">${esc(t('continueBtn'))}</button>
+      </div>
+    </div>
+  `;
+  ['f-name', 'f-team'].forEach(id => {
+    el(id).addEventListener('input', e => {
+      const key = id === 'f-name' ? 'name' : 'team';
+      state.identity[key] = e.target.value;
+      saveDraft();
+    });
+  });
+}
+
+function setRole(role) {
+  state.identity.role = role;
+  saveDraft();
+  render();
+}
+
+function confirmSetup() {
+  const missing = [];
+  if (!state.identity.name.trim()) missing.push(t('fieldName'));
+  if (!state.identity.team.trim()) missing.push(t('fieldTeam'));
+  if (!state.identity.role) missing.push(t('fieldRole'));
+  if (missing.length) {
+    el('setup-err').textContent = t('pleaseAdd') + ' ' + missing.join(', ') + '.';
+    return;
+  }
+  advance();
+}
+
+function renderCompetencyPage(app, deptCompIdx) {
+  const comp = DEPT_COMPETENCIES[deptCompIdx];
+  const focuses = focusesOnPage(deptCompIdx);
+  const totalPages = 4;
+  const current = deptCompIdx + 1;
+
+  app.innerHTML = `
+    <div class="card">
+      ${progressBar(current, totalPages, t('competencyLabel') + ' ' + current + ' ' + t('ofWord') + ' ' + totalPages)}
+      <div class="capsules"><span class="cap cap-blue">${esc(t('deptCompetencyChip'))}</span></div>
+      <h1>${esc(L(comp.name))}</h1>
+      <p class="muted">${esc(t('competencyPageSub'))}</p>
+
+      <div class="cap-legend">
+        <span><span class="cap cap-blue">${esc(t('capLegendDeptLabel'))}</span> ${esc(t('capLegendDeptText'))}</span>
+        <span><span class="cap cap-red">${esc(t('capLegendOrgLabel'))}</span> ${esc(t('capLegendOrgText'))}</span>
+      </div>
+
+      ${focuses.map(f => renderFocusCard(f)).join('')}
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goBack()">${esc(t('backBtn'))}</button>
+        <button class="btn btn-primary" onclick="advance()">${esc(deptCompIdx === totalPages - 1 ? t('continueToReflection') : t('nextCompetency'))}</button>
+      </div>
+    </div>
+  `;
+
+  focuses.forEach(f => bindFocusCard(f));
+}
+
+function renderFocusCard(focus) {
+  const score = state.scores[focus.id] != null ? state.scores[focus.id] : DEFAULT_SCORE;
+  const comment = state.comments[focus.id] || '';
+  const anchors = levelAnchors(focus.id);
+  const hl = highlightedAnchors(score);
+  const deptCaps = deptCompsForFocus(focus.id).map(c => '<span class="cap cap-blue">' + esc(L(c.name)) + '</span>').join('');
+  const orgCaps = orgCompsForFocus(focus.id).map(c => '<span class="cap cap-red">' + esc(L(c.name)) + '</span>').join('');
+
+  return `
+    <div class="focus-card" data-focus-id="${focus.id}">
+      <h2>${esc(L(focus.name))}</h2>
+      <div class="capsules">${deptCaps}${orgCaps}</div>
+
+      <div class="slider-wrap">
+        <div class="slider-header">
+          <div>
+            <div class="slider-score" id="score-${focus.id}">${score}</div>
+            <div class="slider-band" id="band-${focus.id}">${bandLabelFor(score)}</div>
+          </div>
+          <div class="tiny">${esc(t('scaleLabel'))}</div>
+        </div>
+        <input type="range" id="slider-${focus.id}" data-focus="${focus.id}" min="20" max="80" value="${score}" step="10">
+        <div class="slider-ticks">
+          <span>20</span><span>30</span><span>40</span><span>50</span><span>60</span><span>70</span><span>80</span>
+        </div>
+      </div>
+
+      <div class="level-guide">
+        <div class="level-guide-header">
+          <span>${esc(t('levelGuideHeader'))}</span>
+          <span class="level-guide-note">${esc(t('levelGuideNote'))}</span>
+        </div>
+        <div class="level-cols" data-focus="${focus.id}">
+          ${[20, 40, 60, 80].map((lvl, i) => `
+            <div class="level-col ${hl.indexOf(lvl) !== -1 ? 'current' : ''}" data-level="${lvl}">
+              <div class="lvl-badge">${lvl}</div>
+              <div class="lvl-band">${bandLabel(lvl)}</div>
+              <div class="lvl-desc">${esc(anchors[i])}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      ${renderShadowFor(focus)}
+
+      <label for="comment-${focus.id}">${esc(t('commentsLabel'))}</label>
+      <textarea id="comment-${focus.id}" data-focus="${focus.id}" placeholder="${esc(t('commentsPlaceholder'))}">${esc(comment)}</textarea>
+    </div>
+  `;
+}
+
+function bindFocusCard(focus) {
+  const slider = document.getElementById('slider-' + focus.id);
+  const textarea = document.getElementById('comment-' + focus.id);
+  if (!slider || !textarea) return;
+
+  const scoreEl = document.getElementById('score-' + focus.id);
+  const bandEl = document.getElementById('band-' + focus.id);
+  const cols = document.querySelectorAll('.level-cols[data-focus="' + focus.id + '"] .level-col');
+
+  slider.addEventListener('input', e => {
+    const v = parseInt(e.target.value, 10);
+    state.scores[focus.id] = v;
+    scoreEl.textContent = v;
+    bandEl.textContent = bandLabelFor(v);
+    const hl = highlightedAnchors(v);
+    cols.forEach(c => {
+      c.classList.toggle('current', hl.indexOf(parseInt(c.dataset.level, 10)) !== -1);
+    });
+    saveDraft();
+  });
+
+  textarea.addEventListener('input', e => {
+    state.comments[focus.id] = e.target.value;
+    saveDraft();
+  });
+
+  // Seed default score if unset so it appears in the payload even without slider interaction
+  if (state.scores[focus.id] == null) { state.scores[focus.id] = DEFAULT_SCORE; saveDraft(); }
+}
+
+function renderLookBack(app) {
+  app.innerHTML = `
+    <div class="card">
+      ${progressBar(1, 2, t('reflectionProgressLabel'))}
+      <div class="pillar-chip">${esc(t('lookBackChip'))}</div>
+      <h1>${esc(t('lookBackTitle'))}</h1>
+      <p class="muted">${esc(L(PHASE_HINT_LOOKBACK))}</p>
+      <label for="look-back" class="tiny" style="text-transform: uppercase; letter-spacing: 0.05em;">${esc(t('yourReflectionLabel'))}</label>
+      <textarea id="look-back" rows="10" placeholder="${esc(t('reflectionPlaceholder'))}" style="min-height: 200px">${esc(state.lookingBack)}</textarea>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goBack()">${esc(t('backBtn'))}</button>
+        <button class="btn btn-primary" onclick="advance()">${esc(t('continueToLookAhead'))}</button>
+      </div>
+    </div>
+  `;
+  el('look-back').addEventListener('input', e => { state.lookingBack = e.target.value; saveDraft(); });
+}
+
+function renderLookAhead(app) {
+  app.innerHTML = `
+    <div class="card">
+      ${progressBar(2, 2, t('reflectionProgressLabel'))}
+      <div class="pillar-chip">${esc(t('lookAheadChip'))}</div>
+      <h1>${esc(t('lookAheadTitle'))}</h1>
+      <p class="muted">${esc(L(PHASE_HINT_LOOKAHEAD))}</p>
+      <label for="look-ahead" class="tiny" style="text-transform: uppercase; letter-spacing: 0.05em;">${esc(t('yourReflectionLabel'))}</label>
+      <textarea id="look-ahead" rows="10" placeholder="${esc(t('reflectionPlaceholder'))}" style="min-height: 200px">${esc(state.lookingAhead)}</textarea>
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goBack()">${esc(t('backBtn'))}</button>
+        <button class="btn btn-primary" onclick="advance()">${esc(t('reviewAnswersBtn'))}</button>
+      </div>
+    </div>
+  `;
+  el('look-ahead').addEventListener('input', e => { state.lookingAhead = e.target.value; saveDraft(); });
+}
+
+function renderReview(app) {
+  const focuses = focusOrder();
+  // Group by primary department competency (keyed by stable id) so the
+  // review lines up with the per-competency page flow.
+  const grouped = {};
+  DEPT_COMPETENCIES.forEach(c => { grouped[c.id] = []; });
+  focuses.forEach(f => {
+    const idx = primaryDeptCompFor(f.id);
+    const compId = DEPT_COMPETENCIES[idx >= 0 ? idx : 0].id;
+    grouped[compId].push(f);
+  });
+  const rows = [];
+  Object.entries(grouped).forEach(([compId, list]) => {
+    if (!list.length) return;
+    const comp = DEPT_COMPETENCIES.find(c => c.id === compId);
+    rows.push(`<div class="review-pillar">${esc(L(comp.name))}</div>`);
+    list.forEach((f, i) => {
+      const deptPageIdx = primaryDeptCompFor(f.id);
+      const targetStage = STAGE.DEPT_1 + (deptPageIdx >= 0 ? deptPageIdx : 0);
+      const score = state.scores[f.id] != null ? state.scores[f.id] : DEFAULT_SCORE;
+      const band = bandLabelFor(score);
+      const comment = state.comments[f.id] || '';
+      const prev = state.shadow && state.shadow.scores && state.shadow.scores[f.id] != null ? state.shadow.scores[f.id] : null;
+      const priorLine = prev != null ? `<div class="tiny" style="margin-top: 4px; color: var(--text-2)">${esc(t('lastCycleLabel'))} <b style="color: var(--rs-navy)">${prev}</b> ${scoreDelta(prev, score)}</div>` : '';
+      rows.push(`
+        <div class="review-section" style="border-left-color: ${scoreToColor(score)};">
+          <button class="rs-edit" onclick="jumpToStage(${targetStage})">${esc(t('editBtn'))}</button>
+          <h4>${esc(L(f.name))}</h4>
+          <div><span class="rs-score" style="color: ${scoreToColor(score)};">${score}</span><span class="tiny">${band}</span></div>
+          ${priorLine}
+          <div class="rs-comment ${comment ? '' : 'empty'}">${comment ? esc(comment) : esc(t('noCommentAdded'))}</div>
+        </div>
+      `);
+    });
+  });
+
+  const lookBackIdx = STAGE.LOOK_BACK;
+  const lookAheadIdx = STAGE.LOOK_AHEAD;
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="label-chip">${esc(t('reviewChip'))}</div>
+      <h1>${esc(t('reviewTitle'))}</h1>
+      <p class="muted">${t('reviewSub')}</p>
+
+      <div style="padding: 14px 16px; background: var(--line-soft); border-radius: var(--r-md); margin: 16px 0 20px; font-size: 13px;">
+        <b style="color: var(--rs-navy)">${esc(state.identity.name)}</b> &middot;
+        ${esc(state.identity.team)} &middot;
+        ${esc(state.identity.role === 'leader' ? t('roleLeaderLabel') : t('roleCoachLabel'))} &middot;
+        ${esc(state.identity.date)}
+      </div>
+
+      ${renderDeptRollup()}
+      ${radarBlockHtml(t('deptRadarTitle'), t('deptRadarNote'), deptRadarItems(), '#BD3039')}
+      ${renderOrgRollup()}
+      ${radarBlockHtml(L(GROUP_LABELS.universal_culture), t('universalRadarNote'), universalRadarItems(), '#0C2340')}
+
+      <h3 style="margin-top: 22px; text-transform: uppercase; letter-spacing: 0.05em; font-size: 13px;">${esc(t('detailedScoresTitle'))}</h3>
+      ${rows.join('')}
+
+      <div class="review-pillar">${esc(t('reflectionSectionLabel'))}</div>
+      <div class="review-section">
+        <button class="rs-edit" onclick="jumpToStage(${lookBackIdx})">${esc(t('editBtn'))}</button>
+        <h4>${esc(t('lookingBackLabel'))}</h4>
+        <div class="rs-comment ${state.lookingBack ? '' : 'empty'}">${state.lookingBack ? esc(state.lookingBack) : esc(t('noReflectionAdded'))}</div>
+      </div>
+      <div class="review-section">
+        <button class="rs-edit" onclick="jumpToStage(${lookAheadIdx})">${esc(t('editBtn'))}</button>
+        <h4>${esc(t('lookingAheadLabel'))}</h4>
+        <div class="rs-comment ${state.lookingAhead ? '' : 'empty'}">${state.lookingAhead ? esc(state.lookingAhead) : esc(t('noReflectionAdded'))}</div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="goBack()">${esc(t('backBtn'))}</button>
+        <button class="btn btn-primary btn-big" onclick="onConfirm()">${esc(t('confirmGeneratePdf'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+function rollupCellHtml(comp, isPdf) {
+  const score = rollupScore(comp);
+  const prev = priorRollupScore(comp);
+  const focusIds = state.identity.role === 'leader' ? comp.leaderFocuses : comp.coachFocuses;
+  const count = focusIds.filter(id => state.scores[id] != null).length;
+  const descBlock = comp.description ? `<div class="rc-desc">${esc(L(comp.description))}</div>` : '';
+  if (score == null) {
+    return `<div class="rollup-cell no-data">
+      <div class="rc-name">${esc(L(comp.name))}</div>
+      <div class="rc-score">-</div>
+      <div class="rc-band">${esc(t('noScoredFocuses'))}</div>
+      ${descBlock}
+    </div>`;
+  }
+  const delta = (prev != null) ? scoreDelta(prev, score) : '';
+  const focusWord = count === 1 ? t('focusWord') : t('focusesWord');
+  return `<div class="rollup-cell" style="background: ${scoreToColor(score)};">
+    <div class="rc-name">${esc(L(comp.name))}</div>
+    <div class="rc-score">${score}</div>
+    <div class="rc-band">${bandFor(score).label}</div>
+    <div class="rc-meta">${esc(t('avgOf'))} ${count} ${esc(focusWord)}${prev != null ? ' &middot; ' + esc(t('wasWord')) + ' ' + prev : ''}</div>
+    ${delta ? `<div class="rc-delta">${delta}</div>` : ''}
+    ${descBlock}
+  </div>`;
+}
+
+function renderDeptRollup() {
+  const cells = DEPT_COMPETENCIES.map(c => rollupCellHtml(c, false)).join('');
+  return `
+    <div class="rollup-block">
+      <h3>${t('deptRollupTitle')}</h3>
+      <div class="rollup-note">${esc(t('deptRollupNote'))}</div>
+      <div class="rollup-grid">${cells}</div>
+    </div>
+  `;
+}
+
+function renderOrgRollup() {
+  const comps = orgCompsForRole();
+  const groups = groupOrgComps(comps).map(({ label, list }) => `
+    <div class="rollup-group">${esc(label)}</div>
+    <div class="rollup-grid">${list.map(c => rollupCellHtml(c, false)).join('')}</div>
+  `).join('');
+  return `
+    <div class="rollup-block">
+      <h3>${t('orgRollupTitle')}</h3>
+      <div class="rollup-note">${esc(t('orgRollupNote'))}</div>
+      ${groups}
+    </div>
+  `;
+}
+
+function renderConfirm(app) {
+  const firstName = state.identity.name.split(' ')[0] || t('defaultCoachWord');
+  const thankYou = t('thankYouTemplate').replace('{name}', esc(firstName));
+  const isEs = state.lang === 'es';
+  app.innerHTML = `
+    <div class="card confirm-state">
+      <div class="confirm-check">✓</div>
+      <h1>${esc(t('confirmCompleteTitle'))}</h1>
+      <p>${thankYou}</p>
+      <div style="margin: 22px 0; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-big" id="dl-btn" onclick="downloadPdf()">${esc(t('downloadPdfBtn'))}</button>
+        <button class="btn btn-secondary btn-big" onclick="downloadDataFile()">${esc(t('saveDataFileBtn'))}</button>
+      </div>
+
+      <div style="text-align: left; padding: 16px 18px; background: #FFF6F7; border-left: 4px solid var(--rs-red); border-radius: 4px; margin: 20px auto; max-width: 560px; font-size: 14px;">
+        <b style="color: var(--rs-red); text-transform: uppercase; letter-spacing: 0.05em; font-size: 12px;">${esc(t('nextStepsLabel'))}</b>
+        <ol style="margin: 8px 0 0 20px; padding: 0; line-height: 1.7; color: var(--ink);">
+          <li>${t('nextStep1')}</li>
+          <li>${t('nextStep2')}</li>
+          <li>${t('nextStep3')}</li>
+        </ol>
+        ${isEs ? `<p style="margin: 10px 0 0; font-size: 13px; color: var(--ink);">${t('esOnlyReminder')}</p>` : ''}
+      </div>
+
+      <div style="text-align: left; padding: 12px 16px; background: var(--line-soft); border-radius: 4px; margin: 12px auto; max-width: 560px; font-size: 13px; color: var(--ink-soft);">
+        <b style="color: var(--rs-navy)">${esc(t('reminderLabel'))}</b> ${t('reminderText')}
+      </div>
+
+      <p class="muted tiny" style="margin-top: 18px">${esc(t('submittedLabel'))} ${esc(state.submittedAt || '')}.</p>
+      <div class="nav-row" style="justify-content: center; margin-top: 12px">
+        <button class="btn btn-secondary" onclick="jumpToStage(STAGE.REVIEW)">${esc(t('backToReview'))}</button>
+        <button class="btn btn-ghost" onclick="startNew()">${esc(t('startNewBtn'))}</button>
+      </div>
+    </div>
+  `;
+}
+
+//==============================================================================
+// SHADOW / PRIOR-CYCLE CARRY-FORWARD
+//==============================================================================
+
+function initDropZone() {
+  const dz = document.getElementById('prior-drop');
+  const input = document.getElementById('prior-file');
+  if (!dz || !input) return;
+  dz.addEventListener('click', () => input.click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleShadowFile(f);
+  });
+  input.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) handleShadowFile(f);
+  });
+}
+
+async function handleShadowFile(file) {
+  const dz = document.getElementById('prior-drop');
+  if (dz) { dz.classList.add('dragover'); }
+  const name = (file.name || '').toLowerCase();
+  const isPdf = name.endsWith('.pdf') || file.type === 'application/pdf';
+  try {
+    let data = null;
+    if (isPdf) {
+      data = await extractPayloadFromPdf(file);
+      if (!data) {
+        alert(t('alertBadPdf'));
+        if (dz) dz.classList.remove('dragover');
+        return;
+      }
+    } else {
+      // Primary path: the .json data file saved from the confirm screen
+      const text = await file.text();
+      data = JSON.parse(text);
+    }
+    if (data && data.identity && data.scores) {
+      state.shadow = data;
+      saveDraft();
+      render();
+    } else {
+      alert(t('alertBadFile'));
+    }
+  } catch (err) {
+    alert(t('alertBadFileRead') + ' ' + (err && err.message ? err.message : err));
+  } finally {
+    if (dz) dz.classList.remove('dragover');
+  }
+}
+
+async function extractPayloadFromPdf(file) {
+  if (!window.pdfjsLib) return null;
+  try {
+    // Set worker src once. Match the CDN version above.
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    const meta = await pdf.getMetadata();
+    const subject = (meta && meta.info && meta.info.Subject) || '';
+    if (typeof subject === 'string' && subject.indexOf(CRT_MARKER) === 0) {
+      const encoded = subject.slice(CRT_MARKER.length);
+      const jsonStr = b64ToUtf8(encoded);
+      return JSON.parse(jsonStr);
+    }
+    return null;
+  } catch (e) {
+    console.warn('PDF metadata extraction failed', e);
+    return null;
+  }
+}
+
+function clearShadow() {
+  if (!confirm(t('confirmRemovePrior'))) return;
+  state.shadow = null;
+  saveDraft();
+  render();
+}
+
+function renderShadowFor(focus) {
+  if (!state.shadow || state.shadow.scores[focus.id] == null) return '';
+  const prev = state.shadow.scores[focus.id];
+  const prevComment = state.shadow.comments && state.shadow.comments[focus.id] ? state.shadow.comments[focus.id] : '';
+  return `
+    <div class="shadow-inline">
+      ${esc(t('lastCycleLabel'))} <span class="si-val">${prev}</span>
+      <span>&middot;</span>
+      <span>${bandFor(prev).label}</span>
+    </div>
+    ${prevComment ? `
+      <div class="shadow-prev-comment">
+        <span class="spc-label">${esc(t('yourCommentLastCycle'))}</span>
+        <em>${esc(prevComment)}</em>
+      </div>
+    ` : ''}
+  `;
+}
+
+function scoreDelta(prev, curr) {
+  if (prev == null || curr == null) return '';
+  const d = curr - prev;
+  if (d === 0) return '<span class="si-delta same">' + esc(t('noChange')) + '</span>';
+  const sign = d > 0 ? '+' : '';
+  return '<span class="si-delta ' + (d < 0 ? 'down' : '') + '">' + sign + d + '</span>';
+}
+
+//==============================================================================
+// NAV
+//==============================================================================
+
+function advance() {
+  state.stage++;
+  saveDraft();
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function goBack() {
+  if (state.stage > 0) {
+    state.stage--;
+    saveDraft();
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+function jumpToStage(idx) {
+  state.stage = idx;
+  saveDraft();
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function onConfirm() {
+  state.submittedAt = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+  advance();
+  // Auto-trigger PDF generation shortly after render so the user sees confirmation first
+  setTimeout(() => downloadPdf(), 300);
+}
+function startNew() {
+  if (!confirm(t('confirmStartNew'))) return;
+  clearDraft();
+  state = {
+    stage: 0,
+    lang: null,
+    identity: { name: '', team: '', role: '', date: new Date().toISOString().slice(0,10) },
+    scores: {}, comments: {},
+    lookingBack: '', lookingAhead: '',
+    submittedAt: null,
+    shadow: null
+  };
+  render();
+}
+
+//==============================================================================
+// PDF
+//==============================================================================
+
+function pdfRollupCell(comp) {
+  const score = rollupScore(comp);
+  const prev = priorRollupScore(comp);
+  const focusIds = state.identity.role === 'leader' ? comp.leaderFocuses : comp.coachFocuses;
+  const count = focusIds.filter(id => state.scores[id] != null).length;
+  const descBlock = comp.description ? `<div class="prc-desc">${esc(L(comp.description))}</div>` : '';
+  if (score == null) {
+    return `<div class="pdf-rollup-cell no-data">
+      <div class="prc-name">${esc(L(comp.name))}</div>
+      <div class="prc-score">-</div>
+      <div class="prc-band">${esc(t('noScoredFocuses'))}</div>
+      ${descBlock}
+    </div>`;
+  }
+  const deltaStr = (prev != null && prev !== score) ? ' (' + t('wasWord') + ' ' + prev + ', ' + (score > prev ? '+' : '') + (score - prev) + ')' : '';
+  const focusWord = count === 1 ? t('focusWord') : t('focusesWord');
+  return `<div class="pdf-rollup-cell" style="background: ${scoreToColor(score)};">
+    <div class="prc-name">${esc(L(comp.name))}</div>
+    <div class="prc-score">${score}</div>
+    <div class="prc-band">${bandFor(score).label}</div>
+    <div class="prc-meta">${esc(t('avgOf'))} ${count} ${esc(focusWord)}${esc(deltaStr)}</div>
+    ${descBlock}
+  </div>`;
+}
+function pdfRollup(competencies) {
+  return `<div class="pdf-rollup-grid">${competencies.map(pdfRollupCell).join('')}</div>`;
+}
+function pdfOrgRollup() {
+  const comps = orgCompsForRole();
+  return groupOrgComps(comps).map(({ label, list }) => `
+    <div class="pdf-rollup-group">${esc(label)}</div>
+    <div class="pdf-rollup-grid">${list.map(pdfRollupCell).join('')}</div>
+  `).join('');
+}
+
+// Builds the printable HTML for one language pass. `lang` defaults to the
+// session's chosen language; pass an explicit lang to render a mirror in a
+// different language (see downloadPdf() for the Spanish + English combined
+// flow). `opts.noteOriginalLang`, when set, appends a small note next to any
+// free-text comment/reflection noting it was written in the other language -
+// used on the English mirror, since a coach's own words are never
+// machine-translated for a leadership-facing document.
+function pdfHtml(lang, opts) {
+  opts = opts || {};
+  const prevLang = renderLang;
+  renderLang = lang || state.lang || 'en';
+  try {
+    const otherLangNote = opts.noteOriginalLang ? ' <i style="opacity:0.7">(' + esc(t('mirrorNote')) + ')</i>' : '';
+    const focuses = focusOrder();
+    const grouped = {};
+    DEPT_COMPETENCIES.forEach(c => { grouped[c.id] = []; });
+    focuses.forEach(f => {
+      const idx = primaryDeptCompFor(f.id);
+      const compId = DEPT_COMPETENCIES[idx >= 0 ? idx : 0].id;
+      grouped[compId].push(f);
+    });
+    // Per-pillar averages (skip empty groups so no zero cards show)
+    const pillarAvgs = {};
+    Object.entries(grouped).forEach(([compId, list]) => {
+      if (!list.length) return;
+      const scores = list.map(f => state.scores[f.id]).filter(v => v != null);
+      pillarAvgs[compId] = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0) / scores.length) : 0;
+    });
+    const overallScores = focuses.map(f => state.scores[f.id]).filter(v => v != null);
+    const overall = overallScores.length ? Math.round(overallScores.reduce((a,b)=>a+b,0) / overallScores.length) : 0;
+
+    const summaryCells = Object.entries(pillarAvgs).map(([compId, avg]) => {
+      const label = L(DEPT_COMPETENCIES.find(c => c.id === compId).name);
+      return `
+      <div class="pdf-summary-cell">
+        <div class="psc-label">${esc(label.length > 28 ? label.slice(0, 26) + '…' : label)}</div>
+        <div class="psc-score">${avg}</div>
+        <div class="psc-band">${bandFor(avg).label}</div>
+      </div>
+    `;
+    }).join('');
+
+    const scoreRows = [];
+    Object.entries(grouped).forEach(([compId, list]) => {
+      if (!list.length) return;
+      const label = L(DEPT_COMPETENCIES.find(c => c.id === compId).name);
+      scoreRows.push(`<div class="pdf-pillar-title">${esc(label)} - ${esc(t('avgWord'))} ${pillarAvgs[compId]} (${bandFor(pillarAvgs[compId]).label})</div>`);
+      list.forEach(f => {
+        const score = state.scores[f.id] != null ? state.scores[f.id] : 0;
+        const band = bandFor(score).label;
+        const comment = state.comments[f.id] || '';
+        scoreRows.push(`
+          <div class="pdf-focus-row">
+            <div>
+              <div class="pf-name">${esc(L(f.name))}</div>
+              <div class="pf-band">${band}</div>
+            </div>
+            <div class="pf-score">${score}</div>
+            ${comment ? `<div class="pf-comment">${esc(comment)}${otherLangNote}</div>` : ''}
+          </div>
+        `);
+      });
+    });
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString(renderLang === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    return `
+    <div class="pdf-header">
+      <div class="pdf-org">${t('orgName')}</div>
+      <h1 class="pdf-title">${esc(t('pdfTitle'))}</h1>
+      <div class="pdf-sub">${esc(t('pdfSubmitted'))} ${esc(dateStr)}</div>
+    </div>
+
+    <div class="pdf-meta">
+      <div>
+        <div class="pm-label">${esc(t('coachFieldLabel'))}</div>
+        <div class="pm-value">${esc(state.identity.name)}</div>
+      </div>
+      <div>
+        <div class="pm-label">${esc(t('teamFieldLabel'))}</div>
+        <div class="pm-value">${esc(state.identity.team)}</div>
+      </div>
+      <div>
+        <div class="pm-label">${esc(t('roleFieldLabel'))}</div>
+        <div class="pm-value">${esc(state.identity.role === 'leader' ? t('roleLeaderLabel') : t('roleCoachLabel'))}</div>
+      </div>
+      <div>
+        <div class="pm-label">${esc(t('dateFieldLabel'))}</div>
+        <div class="pm-value">${esc(state.identity.date)}</div>
+      </div>
+    </div>
+
+    <div class="pdf-section-title">${esc(t('execSummary'))}</div>
+    <div style="font-size: 13px; color: #333; margin-bottom: 8px;">${esc(t('overallAverage'))} <b style="color: #BD3039; font-size: 18px;">${overall}</b> - ${bandFor(overall).label}</div>
+    <div class="pdf-summary-grid">${summaryCells}</div>
+
+    <div class="pdf-section-title">${t('deptRollupTitle')}</div>
+    ${pdfRollup(DEPT_COMPETENCIES)}
+    ${radarBlockHtml(t('deptRadarTitle'), t('deptRadarNote'), deptRadarItems(), '#BD3039')}
+
+    <div class="pdf-section-title">${t('orgRollupTitle')}</div>
+    ${pdfOrgRollup()}
+    ${radarBlockHtml(L(GROUP_LABELS.universal_culture), t('universalRadarNote'), universalRadarItems(), '#0C2340')}
+
+    <div class="pdf-section-title">${esc(t('detailedScoresComments'))}</div>
+    ${scoreRows.join('')}
+
+    <div class="pdf-section-title">${esc(t('reflectionLookBackTitle'))}</div>
+    <div class="pdf-reflection">${state.lookingBack ? esc(state.lookingBack) + otherLangNote : esc(t('noReflectionProvided'))}</div>
+
+    <div class="pdf-section-title">${esc(t('reflectionLookAheadTitle'))}</div>
+    <div class="pdf-reflection">${state.lookingAhead ? esc(state.lookingAhead) + otherLangNote : esc(t('noReflectionProvided'))}</div>
+
+    <div class="pdf-footer">
+      ${t('pdfFooter')}
+    </div>
+  `;
+  } finally {
+    renderLang = prevLang;
+  }
+}
+
+// Build the JSON payload that carries this cycle's data. Downloaded as its
+// own small file (see downloadDataFile) so a later cycle can drop it back
+// in and see prior scores as reference points.
+function buildPayload() {
+  return {
+    schemaVersion: 1,
+    kind: 'coach-reflection',
+    submittedAt: state.submittedAt,
+    identity: state.identity,
+    scores: state.scores,
+    comments: state.comments,
+    lookingBack: state.lookingBack,
+    lookingAhead: state.lookingAhead
+  };
+}
+
+// UTF-8-safe base64 helpers so unicode names/comments survive round trip.
+function utf8ToB64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function b64ToUtf8(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+
+const CRT_MARKER = 'CRT_DATA_v1:';
+
+// PDF generation uses the browser's native print engine instead of an
+// html2canvas screenshot. The screenshot approach kept producing blank pages
+// in real hosting environments (GitHub Pages, various browsers) even though
+// it checked out in local testing - native print is the one PDF path every
+// browser implements consistently, and it renders crisper vector text besides.
+// Trade-off: window.print() gives no programmatic access to the resulting
+// file, so we can no longer stamp custom metadata into it. See
+// downloadDataFile() for how prior-cycle carry-forward now works instead.
+// When the session language is Spanish, the PDF is built as ONE combined
+// print job: the Spanish assessment first (as completed), then a page break,
+// then an English mirror of the same scores/framework/structure so the
+// document can go to Leadership in a single file. Free-text comments and
+// reflections are never machine-translated - they appear once, in Spanish,
+// clearly labeled in the English section (see pdfHtml's noteOriginalLang).
+// English sessions print English only.
+function downloadPdf() {
+  const tpl = el('pdf-template');
+  let html = pdfHtml(state.lang);
+  if (state.lang === 'es') {
+    html += '<div style="page-break-before: always;"></div>' + pdfHtml('en', { noteOriginalLang: true });
+  }
+  tpl.innerHTML = html;
+
+  const btn = el('dl-btn');
+  if (btn) { btn.disabled = true; btn.textContent = t('openingPrintDialog'); }
+
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    tpl.innerHTML = '';
+    if (btn) { btn.disabled = false; btn.textContent = t('downloadPdfAgain'); }
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  // Safety net for browsers that don't fire afterprint reliably (some mobile
+  // browsers). Long enough that it won't fire while a real dialog is open.
+  setTimeout(cleanup, 20000);
+
+  // Let the template paint before invoking print.
+  setTimeout(() => {
+    try {
+      window.print();
+    } catch (e) {
+      cleanup();
+      alert(t('printDialogErrorPrefix') + ' ' + (e && e.message ? e.message : e) + '. ' + t('printDialogErrorSuffix'));
+    }
+  }, 80);
+}
+
+// Small JSON companion file carrying this cycle's scores/comments, used to
+// show "last cycle" reference points next cycle (dropped into the zone on
+// the welcome screen). Kept separate from the PDF - see note on downloadPdf().
+function downloadDataFile() {
+  const payload = buildPayload();
+  const safeName = (state.identity.name || 'coach').replace(/[^A-Za-z0-9]+/g, '_');
+  const safeDate = state.identity.date || new Date().toISOString().slice(0,10);
+  const filename = 'Coach_Reflection_Data_' + safeName + '_' + safeDate + '.json';
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// Expose for inline onclick
+window.advance = advance;
+window.goBack = goBack;
+window.jumpToStage = jumpToStage;
+window.setRole = setRole;
+window.confirmSetup = confirmSetup;
+window.onConfirm = onConfirm;
+window.startNew = startNew;
+window.downloadPdf = downloadPdf;
+window.downloadDataFile = downloadDataFile;
+window.clearShadow = clearShadow;
+
+//==============================================================================
+// INIT
+//==============================================================================
+
+loadDraft();
+render();
+</script>
+</body>
+</html>

@@ -9,7 +9,6 @@
   }
 })();
 </script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Colleague Development Input</title>
@@ -438,8 +437,8 @@ p { margin: 0 0 14px; color: var(--ink-soft); }
 /* AUTOSAVE */
 .autosave {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  right: calc(16px + env(safe-area-inset-right, 0px));
   background: var(--rs-navy);
   color: #fff;
   font-size: 12px;
@@ -477,6 +476,55 @@ p { margin: 0 0 14px; color: var(--ink-soft); }
   cursor: pointer;
   font-weight: 600;
 }
+
+/* RESULT DOCUMENT — the formatted page that becomes the PDF handed to the
+   Coordinator. Visible on screen on the confirm stage so it can be checked
+   before printing; on print, everything else on the page is hidden and this
+   is what fills the page. */
+.result-doc {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 40px 44px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.result-doc .doc-rule { height: 4px; background: var(--rs-red); margin: 0 0 18px; }
+.result-doc .doc-eyebrow { font-size: 11px; letter-spacing: 1.5px; font-weight: 700; color: var(--rs-red); text-transform: uppercase; margin-bottom: 6px; }
+.result-doc h1 { margin: 0 0 4px; }
+.result-doc .doc-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 22px; }
+.result-doc .doc-meta-row { display: grid; grid-template-columns: 140px 1fr; font-size: 13px; padding: 3px 0; color: var(--ink-soft); }
+.result-doc .doc-meta-row b { color: var(--ink); }
+.result-doc .doc-section { margin: 22px 0 0; }
+.result-doc .doc-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--rs-navy); border-bottom: 2px solid var(--line-soft); padding-bottom: 6px; margin: 0 0 10px; }
+.result-doc .doc-q { font-size: 13px; font-weight: 700; color: var(--ink); margin: 14px 0 4px; }
+.result-doc .doc-a { font-size: 14px; color: var(--ink-soft); line-height: 1.6; white-space: pre-wrap; }
+.result-doc .doc-a i { color: var(--ink-mute); }
+.result-doc .doc-score { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 700; color: var(--rs-navy); }
+.result-doc .doc-footer { margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--line-soft); font-size: 11px; color: var(--ink-mute); }
+
+/* DATA BLOCK — the machine-readable payload, embedded so the dashboard can
+   read it back out of the printed PDF. Invisible on screen; printed on its
+   own page at the end of the PDF. */
+.data-block { display: none; }
+.data-block .data-note { font-size: 10px; color: #888; margin: 0 0 6px; }
+.data-block pre {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8.5px;
+  line-height: 1.35;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+@media print {
+  @page { margin: 1in; }
+  body { background: #fff !important; }
+  .topbar, .stage-bar, .autosave, .resume-banner, .print-hide { display: none !important; }
+  .shell { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  .result-doc { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+  .data-block { display: block !important; page-break-before: always; }
+}
 </style>
 </head>
 <body>
@@ -505,6 +553,16 @@ p { margin: 0 0 14px; color: var(--ink-soft); }
 <div class="autosave" id="autosave">Saved</div>
 
 <script>
+// Small display helper: position + team, added once, used wherever a coach's
+// role is shown so the "seat" (site + position) stays visible even as the
+// person in it changes. Omitted anywhere a team doesn't apply (Department).
+function roleTeamLabel(p) {
+  if (!p) return '';
+  var role = p.role || '';
+  var team = p.team || '';
+  return (team && team !== 'Department') ? (role + ' · ' + team) : role;
+}
+
 //==============================================================================
 // CONFIG
 //==============================================================================
@@ -537,24 +595,24 @@ const FORM_KEY    = ''; // e.g. 'a1b2c3d4-...' (from getFormKey() in Apps Script
 // Should match the platform's seed staff list. Update if staffing changes.
 //==============================================================================
 const STAFF = [
-  { id: 'marcus-webb',     name: 'Marcus Webb',      role: 'Department Director' },
-  { id: 'erin-coleman',   name: 'Erin Coleman',    role: 'Department Coordinator' },
-  { id: 'derek-simmons',  name: 'Derek Simmons',   role: 'Assistant Coordinator' },
-  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Salem Lead' },
-  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Salem Assistant' },
-  { id: 'austin-reed', name: 'Austin Reed',  role: 'Greenville Lead' },
-  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Greenville Assistant' },
-  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Portland Lead' },
-  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Portland Assistant' },
-  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Worcester Lead' },
-  { id: 'emily-turner', name: 'Emily Turner',  role: 'Worcester Assistant' },
-  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Florida Lead' },
-  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Florida Assistant' },
-  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Rehab Lead' },
-  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Rehab Assistant' },
-  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'Boston Coach 1' },
-  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'Boston Coach 2' },
-  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'Boston Rehab' },
+  { id: 'marcus-webb',     name: 'Marcus Webb',      role: 'Director', team: 'Department' },
+  { id: 'erin-coleman',   name: 'Erin Coleman',    role: 'Coordinator', team: 'Department' },
+  { id: 'derek-simmons',  name: 'Derek Simmons',   role: 'Assistant Coordinator', team: 'Department' },
+  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Lead Coach', team: 'Salem' },
+  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Assistant Coach', team: 'Salem' },
+  { id: 'austin-reed', name: 'Austin Reed',  role: 'Lead Coach', team: 'Greenville' },
+  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Assistant Coach', team: 'Greenville' },
+  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Lead Coach', team: 'Portland' },
+  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Assistant Coach', team: 'Portland' },
+  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Lead Coach', team: 'Worcester' },
+  { id: 'emily-turner', name: 'Emily Turner',  role: 'Assistant Coach', team: 'Worcester' },
+  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Lead Coach', team: 'Florida (FCL)' },
+  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Assistant Coach', team: 'Florida (FCL)' },
+  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Lead Coach', team: 'Rehab' },
+  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Assistant Coach', team: 'Rehab' },
+  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'MLB Coach', team: 'Boston' },
+  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'MLB Coach', team: 'Boston' },
+  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'MLB Rehab Coach', team: 'Boston' },
 ];
 
 const RELATIONSHIPS = [
@@ -737,13 +795,13 @@ function renderWelcome() {
       </p>
 
       <div class="covenant">
-        <b>How this works.</b> The colleague whose development you are supporting
-        will receive a personal PDF summary of the input they received, generated
-        by the Coordinator. The colleague will <b>never see who said what</b>;
-        their report groups comments by area, with no reviewer attribution. The
-        Coordinator does see who submitted each piece of input and may follow up
-        with you privately for additional context or clarification. The
-        Coordinator acts as a trusted filter between you and the colleague. This
+        <b>How this works.</b> You'll check your answers, confirm them, then print
+        your input as a PDF and send it to the Coordinator. The Coordinator
+        assembles PDFs from every reviewer &mdash; anonymized, with no reviewer
+        named &mdash; into the colleague's dashboard report and walks them through
+        the feedback in person. The colleague will <b>never see who said what</b>.
+        The Coordinator does see who submitted each piece of input and may follow
+        up with you privately for additional context or clarification. This
         input will <b>never</b> be used in performance reviews, employment
         decisions, or HR processes.
       </div>
@@ -796,7 +854,7 @@ function renderIdentify() {
         <label for="f-recipient">Choose the colleague whose development you're supporting</label>
         <select id="f-recipient" onchange="onRecipientChange(this.value)">
           <option value="">Select a colleague&hellip;</option>
-          ${STAFF.map(s => `<option value="${s.id}" ${rec.coachId === s.id ? 'selected' : ''}>${escapeHtml(s.name)} &mdash; ${escapeHtml(s.role)}</option>`).join('')}
+          ${STAFF.map(s => `<option value="${s.id}" ${rec.coachId === s.id ? 'selected' : ''}>${escapeHtml(s.name)} &mdash; ${escapeHtml(roleTeamLabel(s))}</option>`).join('')}
         </select>
         <div class="hint">One colleague per submission. Come back to the link to support another colleague's development next time.</div>
       </div>
@@ -1006,14 +1064,14 @@ function renderReview() {
 
   return `
     <div class="card">
-      <div class="eyebrow">Step 6 of 6 · Review &amp; submit</div>
-      <h1>Read it back before you submit</h1>
-      <p>Last look. Hit Back to revise anything.</p>
+      <div class="eyebrow">Step 6 of 6 · Check &amp; confirm</div>
+      <h1>Check your answers</h1>
+      <p>Last look. Hit Back to revise anything &mdash; once you confirm, you'll move on to printing this as a PDF for the Coordinator.</p>
 
       <div class="summary-section">
         <h4>About</h4>
         <div class="summary-row"><b>You</b><span>${escapeHtml(state.reviewer.name)} &middot; ${escapeHtml(state.reviewer.email)}</span></div>
-        <div class="summary-row"><b>Colleague</b><span>${escapeHtml(state.recipient.name)} &middot; ${escapeHtml(state.recipient.role)}</span></div>
+        <div class="summary-row"><b>Colleague</b><span>${escapeHtml(state.recipient.name)} &middot; ${escapeHtml(roleTeamLabel(state.recipient))}</span></div>
         <div class="summary-row"><b>Work together</b><span>${escapeHtml(relLabel)}</span></div>
       </div>
 
@@ -1047,11 +1105,109 @@ function renderReview() {
 
       <div class="nav-row">
         <button class="btn btn-ghost" onclick="goPrev()">Back</button>
-        <button class="btn btn-primary" id="submit-btn" onclick="onSubmit()">Submit input</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="onConfirm()">Confirm</button>
       </div>
       <div id="submit-status" class="muted" style="margin-top: 12px;"></div>
     </div>
   `;
+}
+
+//==============================================================================
+// RESULT DOCUMENT + EMBEDDED DATA BLOCK
+// The printable page is the actual deliverable in the manual (no-backend)
+// path now: a clean, readable record of one reviewer's input, with the
+// structured payload embedded at the end (visible only when printed) so the
+// dashboard can read it back out of the PDF. Base64 is used, hard-wrapped at
+// a fixed width with real line breaks, specifically so it survives being
+// reflowed and re-extracted as text from a PDF: whitespace can be stripped
+// back out safely before decoding, unlike a plain-text JSON dump where a
+// dropped or inserted space can silently corrupt the JSON.
+//==============================================================================
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function wrapText(str, width) {
+  const lines = [];
+  for (let i = 0; i < str.length; i += width) lines.push(str.slice(i, i + width));
+  return lines.join('\n');
+}
+function buildDataBlockHtml(payload) {
+  const b64 = utf8ToBase64(JSON.stringify(payload));
+  const wrapped = wrapText(b64, 60);
+  return `
+    <div class="data-block">
+      <p class="data-note">For the Coordinator's dashboard import &mdash; structured data below. Please keep this page in the saved PDF; do not edit it.</p>
+      <pre>---BEGIN-360-DATA---
+${wrapped}
+---END-360-DATA---</pre>
+    </div>
+  `;
+}
+
+function renderResultDoc(payload) {
+  const fb = payload.feedback;
+  const rec = payload.recipient;
+  const first = firstName(rec.name);
+  const scoreTag = (v) => v != null ? `<span class="doc-score">${v}/5</span>` : '';
+  const qa = (question, text, score) => `
+    <div class="doc-q">${escapeHtml(question)}${scoreTag(score)}</div>
+    <div class="doc-a">${text && text.trim() ? escapeHtml(text) : '<i>Not answered.</i>'}</div>
+  `;
+  const relLabel = (RELATIONSHIPS.find(r => r.id === payload.relationship)?.label) || 'Not specified';
+  return `
+    <div class="result-doc" id="result-doc">
+      <div class="doc-rule"></div>
+      <div class="doc-eyebrow">${escapeHtml(BRAND.orgLabel)} &middot; Colleague development input</div>
+      <h1>360 Development Input</h1>
+      <div class="doc-sub">Supporting ${escapeHtml(rec.name)} (${escapeHtml(rec.role)}) &middot; submitted ${escapeHtml((payload.submittedAt || '').slice(0, 10))}</div>
+
+      <div class="doc-meta-row"><b>Reviewer</b><span>${escapeHtml(payload.reviewer.name)} &middot; ${escapeHtml(payload.reviewer.email)}</span></div>
+      <div class="doc-meta-row"><b>Colleague</b><span>${escapeHtml(rec.name)} &middot; ${escapeHtml(rec.role)}</span></div>
+      <div class="doc-meta-row"><b>Work together</b><span>${escapeHtml(relLabel)}</span></div>
+      <div class="doc-meta-row"><b>Response ID</b><span>${escapeHtml(payload.responseId)}</span></div>
+
+      <div class="doc-section">
+        <h3>Strengths</h3>
+        ${qa('What does ' + first + ' do best for the team?', fb.strengths.forTeam, fb.scores.strengthsTeam)}
+        ${qa('What do they do best that specifically helps you in your role?', fb.strengths.forMe, fb.scores.strengthsMe)}
+      </div>
+
+      <div class="doc-section">
+        <h3>Growth</h3>
+        ${qa('What could they do more of for the team?', fb.growth.forTeam, fb.scores.growthTeam)}
+        ${qa('What could they do to assist you further in your role?', fb.growth.forMe, fb.scores.growthMe)}
+      </div>
+
+      <div class="doc-section">
+        <h3>Observed coaching</h3>
+        ${qa('Observed strengths in coaching and player interactions', fb.observedCoaching.strengths, fb.scores.ocStrengths)}
+        ${qa('Observed areas to fine-tune in coaching and player interactions', fb.observedCoaching.growthAreas, fb.scores.ocGrowth)}
+      </div>
+
+      <div class="doc-section">
+        <h3>Blind spots &amp; acknowledgments</h3>
+        ${qa('Blind spots this colleague may not see', fb.blindSpots, null)}
+        ${qa('Specific contributions worth acknowledging', fb.acknowledgments, null)}
+      </div>
+
+      <div class="doc-footer">
+        Completed by the reviewer named above, for the Coordinator only. It will be assembled, anonymized, into ${escapeHtml(first)}'s development report.
+      </div>
+    </div>
+    ${buildDataBlockHtml(payload)}
+  `;
+}
+
+function printResult() {
+  const prevTitle = document.title;
+  if (state.printName) document.title = state.printName;
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
+}
+
+function downloadBackupJson() {
+  if (!state._lastPayload) return;
+  downloadJson(state._lastPayload, state.downloadName || 'development-input.json');
 }
 
 function renderConfirm() {
@@ -1071,7 +1227,7 @@ function renderConfirm() {
           <ul style="margin: 8px 0 0; padding-left: 22px; line-height: 1.6;">
             <li>The Coordinator receives your input as an email with the JSON attached.</li>
             <li>A copy is stored in the department's secure Sheet.</li>
-            <li>${escapeHtml(firstName(recipient.name))} sees only aggregated themes once 3+ colleagues have contributed. Your name is never shown to them.</li>
+            <li>It will be assembled, anonymized and with no reviewer named, into ${escapeHtml(firstName(recipient.name))}'s dashboard report once 3+ colleagues have contributed, and the Coordinator will walk them through it in person.</li>
           </ul>
         </div>
 
@@ -1086,80 +1242,57 @@ function renderConfirm() {
     `;
   }
 
-  // Fallback path: backend was unreachable or unconfigured. Original download +
-  // mailto flow kicks in so the input is not lost.
+  // Manual path: no backend configured (or it was unreachable). The reviewer
+  // checks the formatted result below, prints it as a PDF with normal
+  // margins, and emails that PDF to the Coordinator themselves.
   return `
-    <div class="card confirm-state">
-      <div class="check">✓</div>
-      <h1>Almost there &mdash; three steps to finish</h1>
-      <p>Thanks, ${escapeHtml(firstName(id.name))}. Your input toward ${escapeHtml(firstName(recipient.name))}'s development has been saved as a file on your computer. Now follow these three steps to send it to the Coordinator.</p>
-
-      <div style="margin: 10px 0 20px; padding: 10px 14px; background: #fff4e5; border: 1px solid #ffcc80; border-radius: 6px; color: #6b4a00; font-size: 13px; text-align: left;">
-        Auto-delivery could not reach the Coordinator this time. Follow the three steps below so nothing is lost.
-      </div>
-
-      <div class="download-confirm">
-        <div class="dc-icon">📄</div>
-        <div class="dc-text">
-          <b>Your file has been saved to your Downloads folder:</b>
-          <br><code>${escapeHtml(state.downloadName || 'development-input.json')}</code>
-        </div>
-      </div>
+    <div class="card print-hide">
+      <div class="eyebrow">Confirmed</div>
+      <h1>Print this as a PDF and send it to the Coordinator</h1>
+      <p>Below is exactly what will print. It's already confirmed &mdash; if something needs fixing, use "Support another colleague's development" to start a fresh submission instead.</p>
 
       <div class="step-list">
         <div class="step-item">
           <div class="step-num">1</div>
           <div class="step-text">
-            <span class="step-title">Click the email button below</span>
-            <span class="step-detail">Your default mail app will open with the message pre-filled to the Coordinator. Subject and body are already written for you.</span>
-          </div>
-        </div>
-        <div class="step-item critical">
-          <div class="step-num">2</div>
-          <div class="step-text">
-            <span class="step-title">Attach the JSON file manually from your Downloads folder</span>
-            <span class="step-detail">The file <code>${escapeHtml(state.downloadName || 'development-input.json')}</code> does <b>not</b> attach automatically. You must add it as an attachment yourself before sending. The Coordinator needs this file to import your input into the dashboard.</span>
+            <span class="step-title">Check the document below</span>
+            <span class="step-detail">This is exactly what the Coordinator will receive.</span>
           </div>
         </div>
         <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <span class="step-title">Click "Print to PDF"</span>
+            <span class="step-detail">Choose "Save as PDF" (or your printer's PDF option) as the destination. Margins are already set to normal.</span>
+          </div>
+        </div>
+        <div class="step-item critical">
           <div class="step-num">3</div>
           <div class="step-text">
-            <span class="step-title">Send the email</span>
-            <span class="step-detail">That is it. The Coordinator will reach out if anything needs clarifying.</span>
+            <span class="step-title">Email the saved PDF to the Coordinator</span>
+            <span class="step-detail">Attach the PDF you just saved &mdash; it does not attach automatically. The Coordinator will assemble it, anonymized, into ${escapeHtml(firstName(recipient.name))}'s dashboard report and walk them through the feedback.</span>
           </div>
         </div>
       </div>
 
-      <div style="margin: 24px 0;">
-        <button class="btn btn-primary btn-big" onclick="emailToCoordinator()">Open pre-filled email to Coordinator</button>
-      </div>
-
-      <div style="margin-top: 18px; padding: 14px 16px; background: var(--line-soft); border-radius: 8px; text-align: left; font-size: 13px; color: var(--ink-soft);">
-        <b style="color: var(--ink);">If the email button does not work in your mail client:</b>
-        <ol style="margin: 8px 0 0; padding-left: 22px; line-height: 1.7;">
-          <li>Start a new message manually to <a href="mailto:${escapeHtml(BRAND.emailSender)}">${escapeHtml(BRAND.emailSender)}</a></li>
-          <li>Subject: <i>Development input &mdash; supporting ${escapeHtml(recipient.name)}</i></li>
-          <li>Attach the file <code>${escapeHtml(state.downloadName || 'development-input.json')}</code> from your Downloads folder, then send</li>
-        </ol>
-        <div style="margin-top: 10px;">
-          <button class="btn btn-link" onclick="downloadAgain()">Re-download the file</button>
+      <div class="nav-row" style="flex-wrap: wrap;">
+        <button class="btn btn-link" onclick="downloadBackupJson()">Download backup JSON</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-ghost" onclick="emailToCoordinator()">Email the PDF to Coordinator</button>
+          <button class="btn btn-primary btn-big" onclick="printResult()">Print to PDF</button>
         </div>
       </div>
+    </div>
 
-      <p class="muted" style="margin-top: 20px; font-size: 12px;">
-        Submitted ${escapeHtml(state.submittedAt)} &middot; Response ID <code>${escapeHtml(state.responseId)}</code>
-      </p>
+    ${renderResultDoc(state._lastPayload)}
 
-      <div style="margin-top: 22px;">
+    <div class="card print-hide" style="margin-top: 16px;">
+      <p class="muted" style="margin: 0;">Response ID <code>${escapeHtml(state.responseId)}</code></p>
+      <div style="margin-top: 14px;">
         <button class="btn btn-ghost" onclick="newSubmission()">Support another colleague's development</button>
       </div>
     </div>
   `;
-}
-
-function downloadAgain() {
-  if (!state._lastPayload) return;
-  downloadJson(state._lastPayload, state.downloadName);
 }
 
 function newSubmission() {
@@ -1254,8 +1387,26 @@ function buildPayload() {
   };
 }
 
-function downloadJson(payload, name) {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+async function downloadJson(payload, name) {
+  const jsonStr = JSON.stringify(payload, null, 2);
+  // Inside the Claude artifact preview, a plain <a download> link is inert —
+  // the sandbox never grants pages direct file-save permission. Use the
+  // `downloads` capability there instead. Once this page is deployed on its
+  // own (GitHub Pages, Netlify, an internal server), window.claude will not
+  // exist at all and this falls straight through to the classic browser
+  // download below, unchanged from how it always worked.
+  if (typeof window !== 'undefined' && window.claude && typeof window.claude.use === 'function') {
+    try {
+      const downloads = await window.claude.use('downloads');
+      if (downloads) {
+        await downloads.save({ filename: name, data: jsonStr });
+        return;
+      }
+    } catch (e) {
+      console.warn('downloads capability save unavailable/declined, falling back to browser download', e);
+    }
+  }
+  const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1265,19 +1416,20 @@ function downloadJson(payload, name) {
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
 }
 
-async function onSubmit() {
+async function onConfirm() {
   const btn = document.getElementById('submit-btn');
   const status = document.getElementById('submit-status');
   btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.textContent = 'Confirming…';
   if (status) status.textContent = '';
 
   const payload = buildPayload();
   state._lastPayload = payload;
   const safeRec = (payload.recipient.coachId || 'unknown').replace(/[^a-z0-9]+/gi, '-');
   const safeRev = (state.reviewer.email || 'unknown').split('@')[0].replace(/[^a-z0-9]+/gi, '-');
-  const filename = `360_${safeRec}_from-${safeRev}_${new Date().toISOString().slice(0,10)}.json`;
-  state.downloadName = filename;
+  const baseName = `360_${safeRec}_from-${safeRev}_${new Date().toISOString().slice(0,10)}`;
+  state.downloadName = baseName + '.json';
+  state.printName = baseName;
 
   let delivered = null;
 
@@ -1313,9 +1465,9 @@ async function onSubmit() {
   }
 
   if (!delivered) {
-    // Fallback: local JSON download so the reviewer can email it manually.
-    downloadJson(payload, filename);
-    delivered = 'json';
+    // Manual path: no download here — the confirm/result stage shows the
+    // printable document and the reviewer prints and emails it themselves.
+    delivered = 'print';
   }
 
   state.submittedAt = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
@@ -1330,42 +1482,23 @@ async function onSubmit() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function buildEmailBody(payload) {
+function emailToCoordinator() {
+  const payload = state._lastPayload;
   const r = state.reviewer;
   const rec = state.recipient;
-  const fb = payload.feedback;
+  const subject = `Development input (PDF) — supporting ${rec.name}`;
   const lines = [
     `Hi Simon,`, ``,
-    `[ Before sending: please attach the file "${state.downloadName || 'development-input.json'}" from your Downloads folder. It is required for the Coordinator to import this input into the dashboard. ]`, ``,
+    `[ Please attach the PDF you just saved before sending — it does not attach automatically. ]`, ``,
     `Reviewer:     ${r.name} <${r.email}>`,
     `Supporting:   ${rec.name} (${rec.role})`,
     `Relationship: ${state.relationship || 'not specified'}`,
-    `Response ID: ${payload.responseId}`, ``,
-    `(Plain-text backup of the JSON below, in case the attachment didn't come through.)`, ``,
-    `---BEGIN JSON---`,
-    JSON.stringify(payload, null, 2),
-    `---END JSON---`, ``,
+    `Response ID:  ${payload ? payload.responseId : (state.responseId || '')}`, ``,
     `Thanks,`, `${r.name}`,
   ];
-  return lines.join('\n');
-}
-
-function emailToCoordinator() {
-  const payload = state._lastPayload;
-  if (!payload) {
-    alert('Your responses are no longer in memory. Re-download the file and email it manually to ' + BRAND.emailSender);
-    return;
-  }
-  const subject = `Development input — supporting ${state.recipient.name}`;
-  const body = buildEmailBody(payload);
+  const body = lines.join('\n');
   const mailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  if (mailto.length > 1900) {
-    const shortBody = body.split('---BEGIN JSON---')[0] + '\n(Attachment was too large to inline. The JSON file is attached.)\n\nThanks,\n' + state.reviewer.name;
-    const shortMailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
-    window.location.href = shortMailto;
-  } else {
-    window.location.href = mailto;
-  }
+  window.location.href = mailto;
 }
 
 //==============================================================================

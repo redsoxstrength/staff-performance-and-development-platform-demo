@@ -2,6 +2,16 @@
 <html lang="en">
 <head>
 <script>
+// Small display helper: position + team, added once, used wherever a coach's
+// role is shown so the "seat" (site + position) stays visible even as the
+// person in it changes. Omitted anywhere a team doesn't apply (Department).
+function roleTeamLabel(p) {
+  if (!p) return '';
+  var role = p.role || '';
+  var team = p.team || '';
+  return (team && team !== 'Department') ? (role + ' \u00b7 ' + team) : role;
+}
+
 (function(){
   if (sessionStorage.getItem('spdp_gate_ok_v1') !== '1') {
     var here = location.pathname.split('/').pop() || 'index.html';
@@ -1567,24 +1577,24 @@ function genScores(persona, seed, drift = 0, framework = 'delivery') {
 //   delivery   — the 16-axis S&C Coach Model (coaches + assistant coordinator)
 //   leadership — the leadership-focused placeholder framework (coordinator + director)
 const SEED_COACHES = [
-  { id: 'marcus-webb',     name: 'Marcus Webb',     role: 'Department Director',              accessTier: 'director',              frameworkKind: 'leadership', persona: 'thriving', initials: 'MW' },
-  { id: 'erin-coleman',   name: 'Erin Coleman',   role: 'Department Coordinator',           accessTier: 'coordinator',           frameworkKind: 'leadership', persona: 'thriving', initials: 'EC' },
-  { id: 'derek-simmons',  name: 'Derek Simmons',  role: 'Assistant Coordinator', accessTier: 'assistant_coordinator', frameworkKind: 'delivery',   persona: 'thriving', initials: 'DS' },
-  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Salem Lead',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'effortful',  initials: 'TB' },
-  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Salem Assistant',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'surviving', initials: 'MF' },
-  { id: 'austin-reed', name: 'Austin Reed',  role: 'Greenville Lead',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'thriving',   initials: 'AR' },
-  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Greenville Assistant',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'effortful',  initials: 'KS' },
-  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Portland Lead',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'effortful',  initials: 'JB' },
-  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Portland Assistant',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'surviving', initials: 'HA' },
-  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Worcester Lead',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'steady',     initials: 'BH' },
-  { id: 'emily-turner', name: 'Emily Turner',  role: 'Worcester Assistant',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'steady',     initials: 'ET' },
-  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Florida Lead',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'steady',     initials: 'DM' },
-  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Florida Assistant',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'improving',  initials: 'SL' },
-  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Rehab Lead',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'improving',  initials: 'MT' },
-  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Rehab Assistant',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'excellent',  initials: 'OG' },
-  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'Boston Coach 1',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'thriving',   initials: 'KO' },
-  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'Boston Coach 2',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'excellent',  initials: 'WP' },
-  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'Boston Rehab',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'thriving',   initials: 'NF' }
+  { id: 'marcus-webb',     name: 'Marcus Webb',     role: 'Director', team: 'Department',              accessTier: 'director',              frameworkKind: 'leadership', persona: 'thriving', initials: 'MW' },
+  { id: 'erin-coleman',   name: 'Erin Coleman',   role: 'Coordinator', team: 'Department',           accessTier: 'coordinator',           frameworkKind: 'leadership', persona: 'thriving', initials: 'EC' },
+  { id: 'derek-simmons',  name: 'Derek Simmons',  role: 'Assistant Coordinator', team: 'Department', accessTier: 'assistant_coordinator', frameworkKind: 'delivery',   persona: 'thriving', initials: 'DS' },
+  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Lead Coach', team: 'Salem',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'effortful',  initials: 'TB' },
+  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Assistant Coach', team: 'Salem',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'surviving', initials: 'MF' },
+  { id: 'austin-reed', name: 'Austin Reed',  role: 'Lead Coach', team: 'Greenville',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'thriving',   initials: 'AR' },
+  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Assistant Coach', team: 'Greenville',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'effortful',  initials: 'KS' },
+  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Lead Coach', team: 'Portland',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'effortful',  initials: 'JB' },
+  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Assistant Coach', team: 'Portland',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'surviving', initials: 'HA' },
+  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Lead Coach', team: 'Worcester',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'steady',     initials: 'BH' },
+  { id: 'emily-turner', name: 'Emily Turner',  role: 'Assistant Coach', team: 'Worcester',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'steady',     initials: 'ET' },
+  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Lead Coach', team: 'Florida (FCL)',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'steady',     initials: 'DM' },
+  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Assistant Coach', team: 'Florida (FCL)',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'improving',  initials: 'SL' },
+  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Lead Coach', team: 'Rehab',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'improving',  initials: 'MT' },
+  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Assistant Coach', team: 'Rehab',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'excellent',  initials: 'OG' },
+  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'MLB Coach', team: 'Boston',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'thriving',   initials: 'KO' },
+  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'MLB Coach', team: 'Boston',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'excellent',  initials: 'WP' },
+  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'MLB Rehab Coach', team: 'Boston',             accessTier: 'coach', frameworkKind: 'delivery', persona: 'thriving',   initials: 'NF' }
 ];
 
 function isLeadership(c) { return c && (c.accessTier === 'director' || c.accessTier === 'coordinator'); }
@@ -1651,7 +1661,7 @@ function coachTileFullHtml(c, onclickExpr) {
     <div class="row between" style="align-items:flex-start;gap:8px">
       <div style="flex:1;min-width:0">
         <div class="name">${c.name}</div>
-        <div class="role">${c.role}</div>
+        <div class="role">${roleTeamLabel(c)}</div>
         <div class="coach-tile-flags">
           ${chip('acknowledge-pill', ack, 'acknowledge')}
           ${chip('support-pill', sup, 'support')}
@@ -2495,7 +2505,7 @@ function renderTopnav() {
         <div class="avatar">${u.initials}</div>
         <div>
           <div style="font-size:12px;font-weight:500;line-height:1.1">${u.name}</div>
-          <div style="font-size:10px;opacity:0.7;line-height:1.1">${u.role}</div>
+          <div style="font-size:10px;opacity:0.7;line-height:1.1">${roleTeamLabel(u)}</div>
         </div>
         <button class="menu-btn" onclick="openUserMenu()" aria-label="Menu"><svg class="icon icon-sm"><use href="#i-menu"/></svg></button>
       </div>
@@ -2515,7 +2525,7 @@ window.openUserMenu = function () {
       <div class="row between">
         <div>
           <div class="bold">${u.name}</div>
-          <div class="text-2 text-xs">${u.role}</div>
+          <div class="text-2 text-xs">${roleTeamLabel(u)}</div>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="closeModal()"><svg class="icon icon-sm"><use href="#i-x"/></svg></button>
       </div>
@@ -2603,7 +2613,7 @@ function renderLogin() {
         <div class="coach-tile-avatar status-${status}" style="width:42px;height:42px;font-size:14px;flex:none">${c.initials}</div>
         <div style="flex:1">
           <div class="name" style="font-size:15px">${c.name}</div>
-          <div class="role" style="font-size:12px">${c.role}</div>
+          <div class="role" style="font-size:12px">${roleTeamLabel(c)}</div>
           <div class="text-xs text-2" style="margin-top:4px">${subTitle}</div>
         </div>
         <svg class="icon"><use href="#i-arrow-right"/></svg>
@@ -4408,7 +4418,7 @@ function renderCoordHome() {
             <div class="row between" style="align-items:baseline">
               <div>
                 <div class="name" style="font-size:15px">${c.name}</div>
-                <div class="role" style="font-size:12px">${c.role}</div>
+                <div class="role" style="font-size:12px">${roleTeamLabel(c)}</div>
               </div>
               <div class="row" style="gap:6px">${chips}</div>
             </div>

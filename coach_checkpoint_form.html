@@ -9,7 +9,6 @@
   }
 })();
 </script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coach Checkpoint — Early Season</title>
@@ -453,6 +452,93 @@ p { margin: 0 0 14px; color: var(--ink-soft); }
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+.btn-big { font-size: 16px; padding: 14px 28px; }
+
+/* ----- Step list — numbered, prominent, text-left ----- */
+.step-list { text-align: left; margin: 20px 0; }
+.step-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.step-item:last-child { border-bottom: none; }
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--rs-red);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-item.critical .step-num { background: #ed8c00; }
+.step-text { font-size: 14px; line-height: 1.6; color: var(--ink); }
+.step-text .step-title { font-weight: 700; color: var(--rs-navy); margin-bottom: 4px; display: block; }
+.step-text .step-detail { color: var(--ink-soft); font-size: 13px; }
+.step-text code {
+  background: var(--line-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--ink);
+}
+.step-item.critical .step-text .step-title { color: #C76B00; }
+
+/* ----- Result document — the formatted page that becomes the PDF handed to
+   Simon. Visible on screen on the confirm stage so it can be checked before
+   printing; on print, everything else on the page is hidden and this is what
+   fills the page. ----- */
+.result-doc {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 40px 44px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.result-doc .doc-rule { height: 4px; background: var(--rs-red); margin: 0 0 18px; }
+.result-doc .doc-eyebrow { font-size: 11px; letter-spacing: 1.5px; font-weight: 700; color: var(--rs-red); text-transform: uppercase; margin-bottom: 6px; }
+.result-doc h1 { margin: 0 0 4px; }
+.result-doc .doc-sub { font-size: 13px; color: var(--ink-soft); margin-bottom: 22px; }
+.result-doc .doc-meta-row { display: grid; grid-template-columns: 140px 1fr; font-size: 13px; padding: 3px 0; color: var(--ink-soft); }
+.result-doc .doc-meta-row b { color: var(--ink); }
+.result-doc .doc-section { margin: 22px 0 0; }
+.result-doc .doc-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--rs-navy); border-bottom: 2px solid var(--line-soft); padding-bottom: 6px; margin: 0 0 10px; }
+.result-doc .doc-q { font-size: 13px; font-weight: 700; color: var(--ink); margin: 14px 0 4px; }
+.result-doc .doc-a { font-size: 14px; color: var(--ink-soft); line-height: 1.6; white-space: pre-wrap; }
+.result-doc .doc-a i { color: var(--ink-mute); }
+.result-doc .doc-score { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 700; color: var(--rs-navy); }
+.result-doc .doc-footer { margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--line-soft); font-size: 11px; color: var(--ink-mute); }
+
+/* ----- Data block — the machine-readable payload, embedded so the dashboard
+   can read it back out of the printed PDF. Invisible on screen; printed on
+   its own page at the end of the PDF. ----- */
+.data-block { display: none; }
+.data-block .data-note { font-size: 10px; color: #888; margin: 0 0 6px; }
+.data-block pre {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 8.5px;
+  line-height: 1.35;
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+@media print {
+  @page { margin: 1in; }
+  body { background: #fff !important; }
+  .topbar, .stage-bar, .autosave, .resume-banner, .print-hide { display: none !important; }
+  .shell { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+  .result-doc { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+  .data-block { display: block !important; page-break-before: always; }
+}
 </style>
 </head>
 <body>
@@ -784,8 +870,9 @@ function renderWelcome() {
       <p><b>How it works:</b></p>
       <p>
         You&rsquo;ll move through three professional pillars (16 focus areas total), then a short personal
-        check across four life areas. At the end you can review and submit. Your draft saves automatically
-        so you can close the tab and come back later.
+        check across four life areas. At the end you&rsquo;ll check your answers, confirm them, then print
+        your checkpoint as a PDF and send it to Simon. Your draft saves automatically so you can close the
+        tab and come back later.
       </p>
       <p class="muted">
         Honest scoring beats inflated scoring. A 50 is solid pro standard &mdash; not a low score. We&rsquo;re
@@ -999,9 +1086,9 @@ function renderReview() {
   const totalSteps = STAGES.length - 2;
   return `
     <div class="card">
-      <div class="eyebrow">Step ${totalSteps} of ${totalSteps} · Review &amp; submit</div>
-      <h1>Review your responses</h1>
-      <p>Quick read-back before you submit. Hit Back to revise anything.</p>
+      <div class="eyebrow">Step ${totalSteps} of ${totalSteps} · Check &amp; confirm</div>
+      <h1>Check your responses</h1>
+      <p>Last look. Hit Back to revise anything &mdash; once you confirm, you'll move on to printing this as a PDF for Simon.</p>
 
       <div class="summary-section">
         <h4>Identity</h4>
@@ -1043,7 +1130,7 @@ function renderReview() {
 
       <div class="nav-row">
         <button class="btn btn-ghost" onclick="goPrev()">Back</button>
-        <button class="btn btn-primary" id="submit-btn" onclick="onSubmit()">Submit checkpoint</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="onConfirm()">Confirm</button>
       </div>
       <div id="submit-status" class="muted" style="margin-top: 12px;"></div>
     </div>
@@ -1053,7 +1140,6 @@ function renderReview() {
 function renderConfirm() {
   const sent = state.submittedAt;
   const firstName = (state.identity.name || '').split(' ')[0] || 'Coach';
-  const fileName = state.downloadName || 'checkpoint.json';
 
   // Backend-delivered path — nothing more for the coach to do.
   if (state.deliveredVia === 'backend') {
@@ -1083,139 +1169,165 @@ function renderConfirm() {
     `;
   }
 
-  // Fallback path — backend was unreachable or unconfigured. Original manual
-  // download + mailto flow so nothing is lost.
+  // Manual path — no backend configured (or it was unreachable). Simon checks
+  // the formatted result below, prints it as a PDF with normal margins, and
+  // emails that PDF to Simon themselves.
   return `
-    <div class="card confirm-state">
-      <div class="check">✓</div>
-      <h1>Almost done &mdash; one click to go</h1>
-      <p>Thanks, ${escapeHtml(firstName)}. Your responses have been saved to a file on your computer.</p>
+    <div class="card print-hide">
+      <div class="eyebrow">Confirmed</div>
+      <h1>Print this as a PDF and send it to Simon</h1>
+      <p>Below is exactly what will print. It's already confirmed &mdash; if something needs fixing, use "Submit another" to start a fresh draft instead.</p>
 
-      <div style="margin: 10px 0 20px; padding: 10px 14px; background: #fff4e5; border: 1px solid #ffcc80; border-radius: 6px; color: #6b4a00; font-size: 13px; text-align: left;">
-        Auto-delivery could not reach Simon this time. Use the button below so your checkpoint is not lost.
-      </div>
-
-      <p>Now hit the button below to email your responses. The email will open pre-filled in your default mail app &mdash; just attach the downloaded file and hit send.</p>
-
-      <div style="margin: 28px 0;">
-        <button class="btn btn-primary" id="email-btn" onclick="onEmailToSimon()" style="font-size: 16px; padding: 14px 28px;">
-          Email my responses to Simon
-        </button>
-      </div>
-
-      <div style="margin-top: 18px; padding: 14px 16px; background: var(--line-soft); border-radius: 8px; text-align: left; font-size: 13px; color: var(--ink-soft);">
-        <b style="color: var(--ink);">If the email button doesn't work:</b>
-        <ol style="margin: 8px 0 0; padding-left: 22px; line-height: 1.7;">
-          <li>Open your email client manually and start a message to <a href="mailto:${escapeHtml(BRAND.emailSender)}">${escapeHtml(BRAND.emailSender)}</a></li>
-          <li>Subject: <i>Coach checkpoint &mdash; ${escapeHtml(state.identity.name)}</i></li>
-          <li>Attach the file <code>${escapeHtml(fileName)}</code> from your Downloads folder, then send</li>
-        </ol>
-        <div style="margin-top: 10px;">
-          <button class="btn btn-link" onclick="downloadAgain()">Re-download the file</button>
-          &nbsp;&middot;&nbsp;
-          <button class="btn btn-link" onclick="copyResponsesToClipboard()">Copy responses as text</button>
+      <div class="step-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <span class="step-title">Check the document below</span>
+            <span class="step-detail">This is exactly what Simon will receive.</span>
+          </div>
         </div>
-        <div id="copy-status" class="muted" style="font-size: 12px; margin-top: 4px;"></div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <span class="step-title">Click "Print to PDF"</span>
+            <span class="step-detail">Choose "Save as PDF" (or your printer's PDF option) as the destination. Margins are already set to normal.</span>
+          </div>
+        </div>
+        <div class="step-item critical">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <span class="step-title">Email the saved PDF to Simon</span>
+            <span class="step-detail">Attach the PDF you just saved &mdash; it does not attach automatically.</span>
+          </div>
+        </div>
       </div>
 
-      <p class="muted" style="margin-top: 20px; font-size: 12px;">
-        Submitted ${escapeHtml(sent)} &middot; Response ID <code>${escapeHtml(state.responseId)}</code>
-      </p>
+      <div class="nav-row" style="flex-wrap: wrap;">
+        <button class="btn btn-link" onclick="downloadBackupJson()">Download backup JSON</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-ghost" onclick="emailToSimon()">Email the PDF to Simon</button>
+          <button class="btn btn-primary btn-big" onclick="printResult()">Print to PDF</button>
+        </div>
+      </div>
+    </div>
 
-      <div style="margin-top: 22px;">
+    ${renderResultDoc(state._lastPayload)}
+
+    <div class="card print-hide" style="margin-top: 16px;">
+      <p class="muted" style="margin: 0;">Response ID <code>${escapeHtml(state.responseId)}</code></p>
+      <div style="margin-top: 14px;">
         <button class="btn btn-ghost" onclick="resetForm()">Submit another (clears form)</button>
       </div>
     </div>
   `;
 }
 
-function buildEmailBody(payload) {
-  // A friendly preamble + the JSON in plain form so Simon can still recover
-  // the data even if the attachment is missing.
-  const id = state.identity;
-  const lines = [
-    `Hi Simon,`,
-    ``,
-    `My early-season checkpoint responses are attached as ${state.downloadName || 'checkpoint.json'}.`,
-    ``,
-    `Coach:   ${id.name}`,
-    `Role:    ${id.role}`,
-    `Email:   ${id.email}`,
-    `Date:    ${id.date}`,
-    `Pro avg: ${payload.professional.overallAverage}`,
-    `Personal avg: ${payload.personal.overallAverage} / 5`,
-    `Response ID: ${payload.responseId}`,
-    ``,
-    `(Plain-text backup of the JSON below, in case the attachment didn't come through.)`,
-    ``,
-    `---BEGIN JSON---`,
-    JSON.stringify(payload, null, 2),
-    `---END JSON---`,
-    ``,
-    `Thanks,`,
-    `${id.name}`
-  ];
+//==============================================================================
+// RESULT DOCUMENT + EMBEDDED DATA BLOCK
+// The printable page is the actual deliverable in the manual (no-backend)
+// path: a clean, readable record of one coach's checkpoint, with the
+// structured payload embedded at the end (visible only when printed) so the
+// dashboard can read it back out of the PDF. Base64 is used, hard-wrapped at
+// a fixed width with real line breaks, specifically so it survives being
+// reflowed and re-extracted as text from a PDF.
+//==============================================================================
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function wrapText(str, width) {
+  const lines = [];
+  for (let i = 0; i < str.length; i += width) lines.push(str.slice(i, i + width));
   return lines.join('\n');
 }
-
-function onEmailToSimon() {
-  const payload = state._lastPayload;
-  if (!payload) {
-    alert('Your responses are no longer in memory. Re-download the file and email it manually to ' + BRAND.emailSender);
-    return;
-  }
-  const subject = `Coach checkpoint — ${state.identity.name}`;
-  const body = buildEmailBody(payload);
-  const mailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  // Some mail clients cap URL length around 2KB. If we're over that, omit the
-  // inline JSON to keep the mailto working — the attachment + summary still
-  // gets the job done.
-  if (mailto.length > 1900) {
-    const shortBody = buildEmailBody(payload).split('---BEGIN JSON---')[0] +
-      '\n(Attachment was too large to inline. The JSON file is attached.)\n\nThanks,\n' + state.identity.name;
-    const shortMailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shortBody)}`;
-    window.location.href = shortMailto;
-  } else {
-    window.location.href = mailto;
-  }
+function buildDataBlockHtml(payload) {
+  const b64 = utf8ToBase64(JSON.stringify(payload));
+  const wrapped = wrapText(b64, 60);
+  return `
+    <div class="data-block">
+      <p class="data-note">For the dashboard import &mdash; structured data below. Please keep this page in the saved PDF; do not edit it.</p>
+      <pre>---BEGIN-CHECKPOINT-DATA---
+${wrapped}
+---END-CHECKPOINT-DATA---</pre>
+    </div>
+  `;
 }
 
-function copyResponsesToClipboard() {
-  const payload = state._lastPayload;
-  const status = document.getElementById('copy-status');
-  if (!payload) {
-    if (status) status.textContent = 'Nothing to copy &mdash; submit first.';
-    return;
-  }
-  const text = JSON.stringify(payload, null, 2);
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      if (status) status.textContent = '✓ Copied. Paste into your email if attaching the file isn\'t working.';
-    }).catch(() => fallbackCopy(text, status));
-  } else {
-    fallbackCopy(text, status);
-  }
+function renderResultDoc(payload) {
+  if (!payload) return '';
+  const id = payload;
+  const scoreTag = (v) => v != null ? `<span class="doc-score">${v}/5</span>` : '';
+  return `
+    <div class="result-doc" id="result-doc">
+      <div class="doc-rule"></div>
+      <div class="doc-eyebrow">${escapeHtml(BRAND.orgLabel)} &middot; ${escapeHtml(CHECKPOINT_LABEL)}</div>
+      <h1>Coach Checkpoint</h1>
+      <div class="doc-sub">${escapeHtml(payload.name)} &middot; submitted ${escapeHtml((payload.submittedAt || '').slice(0, 10))}</div>
+
+      <div class="doc-meta-row"><b>Coach</b><span>${escapeHtml(payload.name)} &middot; ${escapeHtml(payload.email)}</span></div>
+      <div class="doc-meta-row"><b>Role</b><span>${escapeHtml(payload.role)}</span></div>
+      <div class="doc-meta-row"><b>Date</b><span>${escapeHtml(payload.date)}</span></div>
+      <div class="doc-meta-row"><b>Response ID</b><span>${escapeHtml(payload.responseId)}</span></div>
+      ${payload.seasonNote ? `<div class="doc-meta-row"><b>Where in calendar</b><span>${escapeHtml(payload.seasonNote)}</span></div>` : ''}
+
+      ${PROFESSIONAL_TAXONOMY.map(p => `
+        <div class="doc-section">
+          <h3>${escapeHtml(p.name)} &mdash; avg ${payload.professional.pillarAverages[p.id] ?? '—'}</h3>
+          ${p.focuses.map(f => `<div class="doc-q">${escapeHtml(f.name)}<span class="doc-score">${payload.professional.scores[f.id] ?? '—'}</span></div>`).join('')}
+          <div class="doc-q" style="margin-top:10px;">Reflection</div>
+          <div class="doc-a">${payload.professional.comments[p.id] && payload.professional.comments[p.id].trim() ? escapeHtml(payload.professional.comments[p.id]) : '<i>Not answered.</i>'}</div>
+        </div>
+      `).join('')}
+
+      <div class="doc-section">
+        <h3>Personal &mdash; avg ${payload.personal.overallAverage ?? '—'} / 5</h3>
+        ${PERSONAL_MAIN.map(c => `
+          <div class="doc-q">${escapeHtml(c.name)}${scoreTag(payload.personal.scores[c.id])}</div>
+          <div class="doc-a">${payload.personal.comments[c.id] && payload.personal.comments[c.id].trim() ? escapeHtml(payload.personal.comments[c.id]) : '<i>Not answered.</i>'}</div>
+        `).join('')}
+      </div>
+
+      ${payload.finalComment ? `
+        <div class="doc-section">
+          <h3>Final comment</h3>
+          <div class="doc-a">${escapeHtml(payload.finalComment)}</div>
+        </div>` : ''}
+
+      <div class="doc-footer">
+        Completed by the coach named above. For Simon only &mdash; not shared beyond the department leadership team.
+      </div>
+    </div>
+    ${buildDataBlockHtml(payload)}
+  `;
 }
 
-function fallbackCopy(text, status) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.top = '-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand('copy');
-    if (status) status.textContent = '✓ Copied to clipboard.';
-  } catch (e) {
-    if (status) status.textContent = 'Couldn\'t copy automatically. Open the downloaded file and copy from there.';
-  }
-  document.body.removeChild(ta);
+function printResult() {
+  const prevTitle = document.title;
+  if (state.printName) document.title = state.printName;
+  window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
 }
 
-function downloadAgain() {
+function downloadBackupJson() {
   if (!state._lastPayload) return;
-  downloadJson(state._lastPayload, state.downloadName);
+  downloadJson(state._lastPayload, state.downloadName || 'checkpoint.json');
+}
+
+function emailToSimon() {
+  const payload = state._lastPayload;
+  const id = state.identity;
+  const subject = `Coach checkpoint (PDF) — ${id.name}`;
+  const lines = [
+    `Hi Simon,`, ``,
+    `[ Please attach the PDF you just saved before sending — it does not attach automatically. ]`, ``,
+    `Coach:        ${id.name} <${id.email}>`,
+    `Role:         ${id.role}`,
+    `Date:         ${id.date}`,
+    `Response ID:  ${payload ? payload.responseId : (state.responseId || '')}`, ``,
+    `Thanks,`, `${id.name}`,
+  ];
+  const body = lines.join('\n');
+  const mailto = `mailto:${encodeURIComponent(BRAND.emailSender)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
 }
 
 function resetForm() {
@@ -1233,6 +1345,7 @@ function resetForm() {
   state.deliveredVia = null;
   state._lastPayload = null;
   state.downloadName = null;
+  state.printName = null;
   render();
 }
 
@@ -1280,6 +1393,7 @@ function buildPayload() {
 
   return {
     schemaVersion: 1,
+    kind: 'checkpoint',
     responseId,
     submittedAt,
     checkpoint: CHECKPOINT_LABEL,
@@ -1308,8 +1422,26 @@ function buildPayload() {
   };
 }
 
-function downloadJson(payload, name) {
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+async function downloadJson(payload, name) {
+  const jsonStr = JSON.stringify(payload, null, 2);
+  // Inside the Claude artifact preview, a plain <a download> link is inert —
+  // the sandbox never grants pages direct file-save permission. Use the
+  // `downloads` capability there instead. Once this page is deployed on its
+  // own (GitHub Pages, Netlify, an internal server), window.claude will not
+  // exist at all and this falls straight through to the classic browser
+  // download below, unchanged from how it always worked.
+  if (typeof window !== 'undefined' && window.claude && typeof window.claude.use === 'function') {
+    try {
+      const downloads = await window.claude.use('downloads');
+      if (downloads) {
+        await downloads.save({ filename: name, data: jsonStr });
+        return;
+      }
+    } catch (e) {
+      console.warn('downloads capability save unavailable/declined, falling back to browser download', e);
+    }
+  }
+  const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1319,27 +1451,29 @@ function downloadJson(payload, name) {
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 250);
 }
 
-async function onSubmit() {
+async function onConfirm() {
   const btn = document.getElementById('submit-btn');
   const status = document.getElementById('submit-status');
   btn.disabled = true;
-  btn.textContent = 'Submitting…';
-  status.textContent = '';
+  btn.textContent = 'Confirming…';
+  if (status) status.textContent = '';
 
   const payload = buildPayload();
   state._lastPayload = payload;
   const safeId = (payload.coachId || 'unknown').replace(/[^a-z0-9]+/gi, '-');
-  const filename = `checkpoint_${safeId}_${state.identity.date}.json`;
-  state.downloadName = filename;
+  const baseName = `checkpoint_${safeId}_${state.identity.date}`;
+  state.downloadName = baseName + '.json';
+  state.printName = baseName;
 
   let delivered = null;
 
   // Try the backend first — auto-emails Simon and writes to the Sheet. Falls
-  // back to the local JSON download if the backend is unreachable or unset,
-  // so no submission is ever lost.
+  // back to the print/PDF flow if the backend is unreachable or unset (which
+  // is the only path right now — no backend is configured), so no submission
+  // is ever lost.
   if (BACKEND_URL && BACKEND_URL.startsWith('http') && FORM_KEY) {
     try {
-      status.textContent = 'Sending securely to Simon…';
+      if (status) status.textContent = 'Sending securely to Simon…';
       const res = await fetch(BACKEND_URL, {
         method: 'POST',
         mode: 'cors',
@@ -1359,21 +1493,21 @@ async function onSubmit() {
         if (j && j.ok) delivered = 'backend';
       }
     } catch (e) {
-      console.warn('Backend send failed, falling back to JSON download', e);
+      console.warn('Backend send failed, falling back to the print/PDF flow', e);
     }
   }
 
   if (!delivered) {
-    // Fallback: local JSON download so the coach can email it manually.
-    downloadJson(payload, filename);
-    delivered = 'json';
+    // Manual path: no download here — the confirm/result stage shows the
+    // printable document and the coach prints and emails it to Simon.
+    delivered = 'print';
   }
 
   state.submittedAt = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
   state.responseId = payload.responseId;
   state.deliveredVia = delivered;
 
-  // Clear the draft now that it's been submitted/downloaded
+  // Clear the draft now that it's been submitted successfully.
   clearDraft();
 
   state.stage = STAGES.length - 1;

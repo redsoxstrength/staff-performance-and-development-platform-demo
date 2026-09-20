@@ -9,7 +9,6 @@
   }
 })();
 </script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Boston Red Sox — 360 Dashboard</title>
@@ -300,7 +299,21 @@ p { margin: 0 0 12px; color: var(--ink-soft); }
 
 <div class="shell" id="root"></div>
 
+<!-- PDF text extraction, used to read the embedded data block back out of a
+     printed 360 PDF. Pinned version; the worker is loaded from the same CDN. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <script>
+// Small display helper: position + team, added once, used wherever a coach's
+// role is shown so the "seat" (site + position) stays visible even as the
+// person in it changes. Omitted anywhere a team doesn't apply (Department).
+function roleTeamLabel(p) {
+  if (!p) return '';
+  var role = p.role || '';
+  var team = p.team || '';
+  return (team && team !== 'Department') ? (role + ' · ' + team) : role;
+}
+
 //==============================================================================
 // CONFIG
 //==============================================================================
@@ -314,6 +327,14 @@ const BRAND = {
   secondary: '#0C2340', secondaryLight: '#1A3357',
 };
 
+// PDF.js needs its worker script's URL set explicitly when loaded this way.
+// If the library failed to load (blocked network, offline), leave this
+// wrapped so PDF drops fail gracefully into the "use the backup JSON" message
+// below rather than throwing on load.
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
 // Minimum reviewers required before per-coach feedback is shown to the coach (PDF mode).
 // Below threshold, the dashboard shows "Feedback collection in progress" in PDF view.
 // The Coordinator's attributed view always shows everything.
@@ -323,24 +344,24 @@ const PDF_MIN_REVIEWERS = 3;
 // STAFF ROSTER — mirrors the form and the platform prototype.
 //==============================================================================
 const STAFF = [
-  { id: 'marcus-webb',     name: 'Marcus Webb',      role: 'Department Director' },
-  { id: 'erin-coleman',   name: 'Erin Coleman',    role: 'Department Coordinator' },
-  { id: 'derek-simmons',  name: 'Derek Simmons',   role: 'Assistant Coordinator' },
-  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Salem Lead' },
-  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Salem Assistant' },
-  { id: 'austin-reed', name: 'Austin Reed',  role: 'Greenville Lead' },
-  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Greenville Assistant' },
-  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Portland Lead' },
-  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Portland Assistant' },
-  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Worcester Lead' },
-  { id: 'emily-turner', name: 'Emily Turner',  role: 'Worcester Assistant' },
-  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Florida Lead' },
-  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Florida Assistant' },
-  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Rehab Lead' },
-  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Rehab Assistant' },
-  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'Boston Coach 1' },
-  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'Boston Coach 2' },
-  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'Boston Rehab' },
+  { id: 'marcus-webb',     name: 'Marcus Webb',      role: 'Director', team: 'Department' },
+  { id: 'erin-coleman',   name: 'Erin Coleman',    role: 'Coordinator', team: 'Department' },
+  { id: 'derek-simmons',  name: 'Derek Simmons',   role: 'Assistant Coordinator', team: 'Department' },
+  { id: 'tyler-brooks',     name: 'Tyler Brooks',      role: 'Lead Coach', team: 'Salem' },
+  { id: 'megan-foster',  name: 'Megan Foster',   role: 'Assistant Coach', team: 'Salem' },
+  { id: 'austin-reed', name: 'Austin Reed',  role: 'Lead Coach', team: 'Greenville' },
+  { id: 'kayla-sanders',    name: 'Kayla Sanders',     role: 'Assistant Coach', team: 'Greenville' },
+  { id: 'jordan-blake',      name: 'Jordan Blake',       role: 'Lead Coach', team: 'Portland' },
+  { id: 'hannah-adams',  name: 'Hannah Adams',   role: 'Assistant Coach', team: 'Portland' },
+  { id: 'brandon-hayes',  name: 'Brandon Hayes',   role: 'Lead Coach', team: 'Worcester' },
+  { id: 'emily-turner', name: 'Emily Turner',  role: 'Assistant Coach', team: 'Worcester' },
+  { id: 'devin-marsh',     name: 'Devin Marsh',      role: 'Lead Coach', team: 'Florida (FCL)' },
+  { id: 'sarah-lang',    name: 'Sarah Lang',     role: 'Assistant Coach', team: 'Florida (FCL)' },
+  { id: 'michael-torres',       name: 'Michael Torres',        role: 'Lead Coach', team: 'Rehab' },
+  { id: 'olivia-grant',   name: 'Olivia Grant',    role: 'Assistant Coach', team: 'Rehab' },
+  { id: 'kevin-ortiz',     name: 'Kevin Ortiz',      role: 'MLB Coach', team: 'Boston' },
+  { id: 'wyatt-price',     name: 'Wyatt Price',      role: 'MLB Coach', team: 'Boston' },
+  { id: 'nathan-ford', name: 'Nathan Ford',  role: 'MLB Rehab Coach', team: 'Boston' },
 ];
 
 const QUESTION_SECTIONS = [
@@ -419,28 +440,73 @@ function aggregateScores(subs, scoreKey) {
 
 function collectComments(subs, textPath) {
   return subs
-    .map(s => ({ text: getNested(s.feedback, textPath), reviewer: s.reviewer, relationship: s.relationship, submittedAt: s.submittedAt }))
+    .map(s => ({ text: getNested(s.feedback, textPath), reviewer: s.reviewer, relationship: s.relationship, submittedAt: s.submittedAt, recipient: s.recipient }))
     .filter(c => c.text && c.text.trim().length > 0);
 }
 
 //==============================================================================
-// FILE INGEST
+// FILE INGEST — PDFs are the primary path: each one carries its structured
+// data embedded (invisibly) on its own printed page, put there by the 360
+// form. Backup JSON files (the original ingestion path) still work exactly
+// as before, for when a PDF can't be read for any reason.
 //==============================================================================
-function ingestFiles(fileList) {
-  const promises = Array.from(fileList).map(file => new Promise((resolve, reject) => {
+function readSubmissionFile(file) {
+  const isPdf = /\.pdf$/i.test(file.name || '') || file.type === 'application/pdf';
+  if (isPdf) return extractJsonFromPdf(file);
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = e => {
-      try {
-        const j = JSON.parse(e.target.result);
-        resolve([j]);
-      } catch (err) { reject(err); }
+      try { resolve(JSON.parse(e.target.result)); }
+      catch (err) { reject(new Error(`${file.name}: not valid JSON (${err.message})`)); }
     };
-    reader.onerror = () => reject(reader.error);
+    reader.onerror = () => reject(reader.error || new Error(file.name + ': could not read file'));
     reader.readAsText(file);
-  }));
-  return Promise.all(promises).then(results => {
-    const flat = results.flat();
-    return mergeSubmissions(flat);
+  });
+}
+
+async function extractJsonFromPdf(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error(`${file.name}: PDF reading isn't available right now. Drop the backup JSON file instead.`);
+  }
+  let fullText;
+  try {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(it => it.str).join(' ') + '\n';
+    }
+    fullText = text;
+  } catch (e) {
+    throw new Error(`${file.name}: could not read this PDF (${(e && e.message) || e}). Drop the backup JSON file instead.`);
+  }
+  const m = fullText.match(/---BEGIN-360-DATA---([\s\S]*?)---END-360-DATA---/);
+  if (!m) {
+    throw new Error(`${file.name}: no embedded data found in this PDF. If it wasn't printed by the 360 form, or the data page was left out when saving, drop the backup JSON file instead.`);
+  }
+  const cleaned = m[1].replace(/[^A-Za-z0-9+/=]/g, ''); // base64 alphabet only — safe to strip
+                                                          // everything else the PDF's line-wrapping
+                                                          // may have introduced (spaces, newlines).
+  let jsonStr;
+  try { jsonStr = decodeURIComponent(escape(atob(cleaned))); }
+  catch (e) { throw new Error(`${file.name}: the data in this PDF could not be decoded. Drop the backup JSON file instead.`); }
+  try { return JSON.parse(jsonStr); }
+  catch (e) { throw new Error(`${file.name}: the data in this PDF did not parse as valid submission data. Drop the backup JSON file instead.`); }
+}
+
+function ingestFiles(fileList) {
+  const files = Array.from(fileList);
+  const tasks = files.map(file => readSubmissionFile(file).then(
+    obj => ({ ok: true, obj }),
+    error => ({ ok: false, file, error })
+  ));
+  return Promise.all(tasks).then(results => {
+    const oks = results.filter(r => r.ok).map(r => r.obj);
+    const fails = results.filter(r => !r.ok);
+    const added = mergeSubmissions(oks);
+    return { added, fails };
   });
 }
 function mergeSubmissions(incoming) {
@@ -460,9 +526,11 @@ function mergeSubmissions(incoming) {
 }
 
 function handleFiles(files) {
-  ingestFiles(files).then(added => {
-    if (added === 0) {
-      alert('No new 360 submissions found. (Files must be JSON with kind = "360".)');
+  ingestFiles(files).then(({ added, fails }) => {
+    if (fails.length) {
+      alert('Some files could not be read:\n\n' + fails.map(f => '• ' + f.error.message).join('\n'));
+    } else if (added === 0) {
+      alert('No new 360 submissions found. (Files must be a 360 PDF printed by the form, or a backup JSON with kind = "360".)');
     }
     render();
   }).catch(err => {
@@ -521,8 +589,8 @@ function renderEmpty() {
     </div>
     <div class="dropzone" id="dropzone">
       <div class="icon">⇪</div>
-      <h2>Drop 360 JSON files here</h2>
-      <p class="muted">Or use the button below. Files saved in your browser so you can keep adding as submissions come in.</p>
+      <h2>Drop 360 PDFs here</h2>
+      <p class="muted">Each reviewer's PDF carries its own data — the dashboard reads it out automatically. Drop the backup JSON instead if a PDF won't read. Files saved in your browser so you can keep adding as submissions come in.</p>
       <div class="file-input">
         <button onclick="document.getElementById('hidden-file-input').click()">Choose files…</button>
       </div>
@@ -530,8 +598,8 @@ function renderEmpty() {
     <div class="card">
       <h3>How this fits the rest of the system</h3>
       <p style="font-size:13px;">
-        <b>1.</b> Staff complete the 360 form (one colleague at a time). Each submission emails you a JSON file.<br>
-        <b>2.</b> You drop those JSON files into this dashboard. They group by who they are about.<br>
+        <b>1.</b> Staff complete the 360 form (one colleague at a time), check and confirm their answers, then print the result as a PDF and email it to you.<br>
+        <b>2.</b> You drop those PDFs into this dashboard — it reads the structured data embedded on the PDF's last page automatically. If a PDF ever won't read, the reviewer's backup JSON file works the same way.<br>
         <b>3.</b> Below threshold (${PDF_MIN_REVIEWERS} reviewers), each coach is held in "collection in progress." Above threshold, you can export their PDF.<br>
         <b>4.</b> Coordinator view shows reviewer attribution; PDF view strips it. Toggle on each coach's page.
       </p>
@@ -587,7 +655,7 @@ function renderRoster() {
           return `
             <div class="roster-tile no-feedback">
               <div class="name">${escapeHtml(coach.name)}</div>
-              <div class="role">${escapeHtml(coach.role)}</div>
+              <div class="role">${escapeHtml(roleTeamLabel(coach))}</div>
               <span class="reviewer-count no-feedback-pill">No input yet</span>
             </div>
           `;
@@ -595,7 +663,7 @@ function renderRoster() {
         return `
           <div class="roster-tile" onclick="selectCoach('${escapeHtml(coach.id)}')">
             <div class="name">${escapeHtml(coach.name)}</div>
-            <div class="role">${escapeHtml(coach.role)}</div>
+            <div class="role">${escapeHtml(roleTeamLabel(coach))}</div>
             <span class="reviewer-count ${above ? '' : 'below-threshold'}">${count} reviewer${count === 1 ? '' : 's'}${above ? ' · PDF-ready' : ` · ${PDF_MIN_REVIEWERS - count} below threshold`}</span>
             <div class="latest-meta">Latest: ${escapeHtml(latestDate)}</div>
           </div>
@@ -650,7 +718,7 @@ function renderCoach() {
             <div>
               <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · 360 input</div>
               <h1>${escapeHtml(coach.name)}</h1>
-              <div class="muted">${escapeHtml(coach.role)}</div>
+              <div class="muted">${escapeHtml(roleTeamLabel(coach))}</div>
             </div>
           </div>
           <div class="mode-toggle print-hide">
@@ -685,7 +753,7 @@ function renderCoach() {
           <div>
             <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · 360 input</div>
             <h1>${escapeHtml(coach.name)}</h1>
-            <div class="muted">${escapeHtml(coach.role)} &middot; ${reviewerCount} reviewer${reviewerCount === 1 ? '' : 's'} &middot; ${escapeHtml(earliest)}${earliest !== latest ? ' to ' + escapeHtml(latest) : ''}</div>
+            <div class="muted">${escapeHtml(roleTeamLabel(coach))} &middot; ${reviewerCount} reviewer${reviewerCount === 1 ? '' : 's'} &middot; ${escapeHtml(earliest)}${earliest !== latest ? ' to ' + escapeHtml(latest) : ''}</div>
           </div>
         </div>
         <div class="mode-toggle print-hide">
@@ -828,7 +896,7 @@ function renderGroup() {
               </div>
             </div>
             ${comments.map(c => {
-              const aboutName = state.submissions.find(s => s.feedback && getNested(s.feedback, section.textPath) === c.text)?.recipient?.name || '';
+              const aboutName = c.recipient?.name || '';
               return `
                 <div class="comment">
                   <span class="attribution">${escapeHtml(c.reviewer?.name || 'Unknown')}</span>
@@ -883,7 +951,7 @@ input.type = 'file';
 input.id = 'hidden-file-input';
 input.style.display = 'none';
 input.multiple = true;
-input.accept = '.json,application/json';
+input.accept = '.pdf,application/pdf,.json,application/json';
 input.addEventListener('change', e => handleFiles(e.target.files));
 document.body.appendChild(input);
 

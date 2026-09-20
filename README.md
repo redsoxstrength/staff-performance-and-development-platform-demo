@@ -20,7 +20,7 @@ underlying demo data (scores, cycles, personas) is otherwise unchanged.
 
 ## The password gate
 
-Every page (`index.html` and the six tool pages) checks a session flag on load
+Every page (`index.html` and the seven tool pages) checks a session flag on load
 and bounces to `gate.html` if it isn't set. `gate.html` hashes whatever the
 visitor types (SHA-256, done in the browser) and compares it to a stored hash —
 if it matches, it unlocks the rest of the site for that browser tab's session.
@@ -58,6 +58,8 @@ coach_portal.html                    <-- a coach's own dashboard + history
 coach_360_feedback_form.html         <-- colleague feedback form
 coach_360_dashboard.html             <-- leadership dashboard for 360 data
 
+coach_reflection_tool.html           <-- bilingual (EN/ES) self-reflection wizard
+
 coach_checkpoint_form.html           <-- early-season self-checkpoint form
 coach_checkpoint_dashboard.html      <-- leadership dashboard for checkpoints
 ```
@@ -66,24 +68,64 @@ This is a trimmed set — just what's needed for the interactive demo to run
 behind the gate. The backend (Google Apps Script), setup guide, and reference
 PDFs aren't included here; ask Simon if you need those too.
 
+## Recent changes in this build
+
+- **Checkpoint is now print/PDF based too, matching 360.** The checkpoint form
+  (`coach_checkpoint_form.html`) now ends the same way the 360 form does: check
+  your answers, confirm, then print the result as a PDF and send it to the
+  Coordinator, instead of downloading a JSON file. `coach_checkpoint_dashboard.html`
+  reads that PDF back in the browser (via pdf.js) to reconstruct the
+  submission — dropping a `.json` backup file or pasting the sheet's CSV still
+  work as fallbacks. For now everything runs this way — print, send, drop in —
+  with no Google Sheets backend wired up; the dormant backend-send code is
+  still there in both forms (disabled, `BACKEND_URL` left blank) for whenever
+  a real backend gets built into the platform.
+- **360 feedback is print/PDF based, not JSON.** The reviewer form
+  (`coach_360_feedback_form.html`) now ends with a formatted, printable result
+  page instead of a raw JSON download — the reviewer prints or saves it as a
+  PDF and emails that. The machine-readable data travels invisibly embedded on
+  the last printed page. `coach_360_dashboard.html` reads that PDF back in the
+  browser (via pdf.js) to reconstruct the submission — dropping a `.json` file
+  still works as a fallback. Nothing about the underlying scoring or
+  aggregation changed, just how a submission gets from reviewer to dashboard.
+- **Checkpoint dashboard bugfix:** a coach's personal-domain detail view could
+  previously show a missing/unscored area as "surviving" (the worst status)
+  instead of "no data yet." It now shows an explicit unknown/no-data state
+  instead of guessing.
+- **New: Coach Reflection Tool.** A self-guided, bilingual (English/Spanish)
+  reflection wizard covering the same coaching and leadership competency
+  frameworks used elsewhere in the platform, including a spider/radar summary
+  and an optional comparison against a coach's own prior submission. Like the
+  360 form, it produces a printable PDF with the data embedded for later
+  re-import. It has no staff roster of its own, so there was nothing to
+  anonymize in it — it's included in this package as-is.
+
 ## The placeholder roster
 
 Every real name was replaced 1:1, keeping the same underlying score/persona
-data, using this scheme:
+data. Each profile now carries **position** and **team** as two separate
+fields (not one merged label), so the seat stays legible even as whoever
+fills it changes — shown together wherever there's room (login tiles, the
+360 roster and detail views, the top-nav user badge) and left off the couple
+of spots too small for it (the 2-letter avatar circles).
 
-| Code | Role | Placeholder name |
-|---|---|---|
-| DD | Department Director | Marcus Webb |
-| DC | Department Coordinator | Erin Coleman |
-| AC | Assistant Coordinator | Derek Simmons |
-| SL / SA | Salem Lead / Assistant | Tyler Brooks / Megan Foster |
-| GL / GA | Greenville Lead / Assistant | Austin Reed / Kayla Sanders |
-| PL / PA | Portland Lead / Assistant | Jordan Blake / Hannah Adams |
-| WL / WA | Worcester Lead / Assistant | Brandon Hayes / Emily Turner |
-| FL / FA | Florida Lead / Assistant | Devin Marsh / Sarah Lang |
-| RL / RA | Rehab Lead / Assistant | Michael Torres / Olivia Grant |
-| B1 / B2 | Boston Coach 1 / 2 | Kevin Ortiz / Wyatt Price |
-| BR | Boston Rehab | Nathan Ford |
+| Code | Position | Team | Placeholder name |
+|---|---|---|---|
+| DD | Director | Department | Marcus Webb |
+| DC | Coordinator | Department | Erin Coleman |
+| AC | Assistant Coordinator | Department | Derek Simmons |
+| SL / SA | Lead Coach / Assistant Coach | Salem | Tyler Brooks / Megan Foster |
+| GL / GA | Lead Coach / Assistant Coach | Greenville | Austin Reed / Kayla Sanders |
+| PL / PA | Lead Coach / Assistant Coach | Portland | Jordan Blake / Hannah Adams |
+| WL / WA | Lead Coach / Assistant Coach | Worcester | Brandon Hayes / Emily Turner |
+| FL / FA | Lead Coach / Assistant Coach | Florida (FCL) | Devin Marsh / Sarah Lang |
+| RL / RA | Lead Coach / Assistant Coach | Rehab | Michael Torres / Olivia Grant |
+| B1 / B2 | MLB Coach | Boston | Kevin Ortiz / Wyatt Price |
+| BR | MLB Rehab Coach | Boston | Nathan Ford |
+
+Department-tier profiles (Director, Coordinator, Assistant Coordinator) show
+just the position — there's no separate team to display since the role is
+org-wide, not site-specific.
 
 Note: the original 18-person roster didn't include a separate "Academy" group,
 so A1/A2/A3 aren't represented here — say the word if you want three more

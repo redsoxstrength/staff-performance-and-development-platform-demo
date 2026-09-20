@@ -9,7 +9,6 @@
   }
 })();
 </script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Coach Checkpoint Dashboard</title>
@@ -232,9 +231,11 @@ p { margin: 0 0 12px; color: var(--ink-soft); }
 .status-thriving  { color: var(--thriving); }
 .status-steady    { color: var(--steady); }
 .status-surviving { color: var(--surviving); }
+.status-unknown   { color: var(--ink-mute); }
 .bg-thriving  { background: var(--thriving);  color: #fff; }
 .bg-steady    { background: var(--steady);    color: #fff; }
 .bg-surviving { background: var(--surviving); color: #fff; }
+.bg-unknown   { background: var(--ink-mute);  color: #fff; }
 .status-chip {
   display: inline-block;
   font-size: 11px;
@@ -652,6 +653,11 @@ p { margin: 0 0 12px; color: var(--ink-soft); }
 
 <div class="shell" id="root"></div>
 
+<!-- PDF text extraction, used to read the embedded data block back out of a
+     printed checkpoint PDF. Pinned version; the worker is loaded from the
+     same CDN. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <script>
 //==============================================================================
 // SNAPSHOT BUNDLE — these two consts are replaced at export time so the dashboard
@@ -675,6 +681,14 @@ const BRAND = {
   primary: '#BD3039', primaryDark: '#8C2128',
   secondary: '#0C2340', secondaryLight: '#1A3357'
 };
+
+// PDF.js needs its worker script's URL set explicitly when loaded this way.
+// If the library failed to load (blocked network, offline), leave this
+// wrapped so PDF drops fail gracefully into the "use the backup JSON" message
+// below rather than throwing on load.
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
 
 //==============================================================================
 // TAXONOMY — must match the form
@@ -790,45 +804,92 @@ function uniqueSubmissions(subs) {
 }
 
 //==============================================================================
-// FILE INGEST
+// FILE INGEST — PDFs are the primary path: each one carries its structured
+// data embedded (invisibly) on its own printed page, put there by the
+// checkpoint form. Backup JSON files and a pasted sheet CSV still work
+// exactly as before, for when a PDF can't be read for any reason.
 //==============================================================================
-function ingestFiles(fileList) {
-  const promises = Array.from(fileList).map(file => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const txt = e.target.result;
-          if (file.name.toLowerCase().endsWith('.csv') || txt.trim().startsWith('responseId,') || txt.trim().startsWith('submittedAt,')) {
-            const parsed = parseCsv(txt);
-            resolve(parsed);
-          } else {
-            const j = JSON.parse(txt);
-            resolve([j]);
-          }
-        } catch (err) { reject(err); }
-      };
-      reader.onerror = () => reject(reader.error);
-      reader.readAsText(file);
-    });
+function readSubmissionFile(file) {
+  const isPdf = /\.pdf$/i.test(file.name || '') || file.type === 'application/pdf';
+  if (isPdf) return extractJsonFromPdf(file).then(obj => [obj]);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const txt = e.target.result;
+        if (file.name.toLowerCase().endsWith('.csv') || txt.trim().startsWith('responseId,') || txt.trim().startsWith('submittedAt,')) {
+          resolve(parseCsv(txt));
+        } else {
+          resolve([JSON.parse(txt)]);
+        }
+      } catch (err) { reject(new Error(`${file.name}: ${err.message}`)); }
+    };
+    reader.onerror = () => reject(reader.error || new Error(file.name + ': could not read file'));
+    reader.readAsText(file);
   });
-  return Promise.all(promises).then(results => {
-    const flat = results.flat();
-    const added = mergeSubmissions(flat);
-    return added;
+}
+
+async function extractJsonFromPdf(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error(`${file.name}: PDF reading isn't available right now. Drop the backup JSON file instead.`);
+  }
+  let fullText;
+  try {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(it => it.str).join(' ') + '\n';
+    }
+    fullText = text;
+  } catch (e) {
+    throw new Error(`${file.name}: could not read this PDF (${(e && e.message) || e}). Drop the backup JSON file instead.`);
+  }
+  const m = fullText.match(/---BEGIN-CHECKPOINT-DATA---([\s\S]*?)---END-CHECKPOINT-DATA---/);
+  if (!m) {
+    throw new Error(`${file.name}: no embedded data found in this PDF. If it wasn't printed by the checkpoint form, or the data page was left out when saving, drop the backup JSON file instead.`);
+  }
+  const cleaned = m[1].replace(/[^A-Za-z0-9+/=]/g, ''); // base64 alphabet only — safe to strip
+                                                          // everything else the PDF's line-wrapping
+                                                          // may have introduced (spaces, newlines).
+  let jsonStr;
+  try { jsonStr = decodeURIComponent(escape(atob(cleaned))); }
+  catch (e) { throw new Error(`${file.name}: the data in this PDF could not be decoded. Drop the backup JSON file instead.`); }
+  try { return JSON.parse(jsonStr); }
+  catch (e) { throw new Error(`${file.name}: the data in this PDF did not parse as valid submission data. Drop the backup JSON file instead.`); }
+}
+
+function ingestFiles(fileList) {
+  const files = Array.from(fileList);
+  const tasks = files.map(file => readSubmissionFile(file).then(
+    arr => ({ ok: true, arr }),
+    error => ({ ok: false, file, error })
+  ));
+  return Promise.all(tasks).then(results => {
+    const oks = results.filter(r => r.ok).flatMap(r => r.arr);
+    const fails = results.filter(r => !r.ok);
+    const added = mergeSubmissions(oks);
+    return { added, fails };
   });
 }
 
 function mergeSubmissions(incoming) {
-  // Add to state, deduping on responseId
+  // Add to state, deduping on responseId. Ignore payloads explicitly tagged
+  // as a different form's kind (e.g. a 360 PDF dropped in here by mistake) —
+  // older checkpoint exports predate the `kind` field, so a missing kind is
+  // still accepted.
   const existingIds = new Set(state.submissions.map(s => s.responseId));
   let added = 0;
   for (const s of incoming) {
-    if (s && s.responseId && !existingIds.has(s.responseId)) {
+    if (!s) continue;
+    if (s.kind && s.kind !== 'checkpoint') continue;
+    if (s.responseId && !existingIds.has(s.responseId)) {
       state.submissions.push(s);
       existingIds.add(s.responseId);
       added++;
-    } else if (s && !s.responseId) {
+    } else if (!s.responseId) {
       // Generate one for CSVs that lack it
       s.responseId = `${s.coachId || 'unknown'}-${Date.now().toString(36)}-${added}`;
       state.submissions.push(s);
@@ -1137,13 +1198,13 @@ function renderEmpty() {
     <div class="page-header">
       <div class="eyebrow">${escapeHtml(BRAND.orgLabel)} · Checkpoint dashboard</div>
       <h1>Early-season coach checkpoint</h1>
-      <p>Drop response files in to begin. Each coach submits a JSON file (or their row lands directly in your Google Sheet).</p>
+      <p>Drop response PDFs in to begin. Each coach prints their checkpoint and sends you the PDF.</p>
     </div>
 
     <div class="dropzone" id="dropzone">
       <div class="icon">⇪</div>
-      <h2>Drop JSON response files here</h2>
-      <p class="muted">Or paste your sheet&rsquo;s CSV. Files saved to your browser so you can keep adding as responses come in.</p>
+      <h2>Drop checkpoint PDFs here</h2>
+      <p class="muted">Each coach's PDF carries its own data — the dashboard reads it out automatically. Drop the backup JSON instead if a PDF won't read. Files saved in your browser so you can keep adding as responses come in.</p>
       <div class="file-input">
         <button onclick="document.getElementById('hidden-file-input').click()">Choose files…</button>
       </div>
@@ -1157,8 +1218,8 @@ function renderEmpty() {
       <h3>How this fits together</h3>
       <p style="font-size:13px;">
         <b>1.</b> Send <code>coach_checkpoint_form.html</code> to each coach. They fill it out in their browser.<br>
-        <b>2.</b> Their response either auto-posts to your Google Sheet (if you set up the webhook) <i>or</i> downloads as JSON for them to email back.<br>
-        <b>3.</b> Drop JSON files in here, or paste your sheet's CSV. The dashboard shows individual reports + a group rollup.<br>
+        <b>2.</b> They check their answers, confirm, print the result as a PDF, and email it to you &mdash; nothing goes anywhere automatically for now.<br>
+        <b>3.</b> Drop the PDFs in here. Each one carries its data invisibly embedded on its last page, which the dashboard reads back out. The backup JSON download and sheet CSV paste still work if a PDF ever won't read.<br>
         <b>4.</b> Hit <b>Export CSV</b> for a clean flat file you can drop into the platform later.
       </p>
     </div>
@@ -1328,7 +1389,11 @@ function renderCoach() {
           <h2>Personal &mdash; detail</h2>
           ${PERSONAL_MAIN.map(c => {
             const v = s.personal?.scores?.[c.id];
-            const personalStatus = v >= 4 ? 'thriving' : (v >= 3 ? 'steady' : 'surviving');
+            // Reuse statusFromPersonalAvg (not an inline v>=4/v>=3 check) so a
+            // missing/null domain score (e.g. from a partial CSV import) reads
+            // as "unknown", not a false-alarm "surviving" — same fix as the
+            // overall roster status, applied per-domain here.
+            const personalStatus = typeof v === 'number' ? statusFromPersonalAvg(v) : 'unknown';
             return `
               <div class="pillar-block">
                 <div class="pillar-head">
@@ -1700,9 +1765,9 @@ function render() {
       <div class="snapshot-banner">
         <div>
           <b>Snapshot &middot; view-only</b>
-          <div class="meta">${escapeHtml(meta.count || state.submissions.length)} ${(meta.count || state.submissions.length) === 1 ? 'response' : 'responses'} &middot; exported ${escapeHtml(exportedDate)} by ${escapeHtml(meta.exportedBy || 'the Coordinator')}</div>
+          <div class="meta">${escapeHtml(meta.count || state.submissions.length)} ${(meta.count || state.submissions.length) === 1 ? 'response' : 'responses'} &middot; exported ${escapeHtml(exportedDate)} by ${escapeHtml(meta.exportedBy || 'Simon')}</div>
         </div>
-        <div class="meta">This is a frozen export. Reach out to ${escapeHtml(meta.exportedBy || 'the Coordinator')} for the latest.</div>
+        <div class="meta">This is a frozen export. Reach out to ${escapeHtml(meta.exportedBy || 'Simon')} for the latest.</div>
       </div>
     `;
   }
@@ -1752,15 +1817,16 @@ function setupDropzone() {
 }
 
 function handleFiles(files) {
-  ingestFiles(files)
-    .then(added => {
-      render();
-      // Brief alert
-      console.log(`Loaded ${added} submission${added === 1 ? '' : 's'}`);
-    })
-    .catch(err => {
-      alert('Could not load file: ' + err.message);
-    });
+  ingestFiles(files).then(({ added, fails }) => {
+    if (fails.length) {
+      alert('Some files could not be read:\n\n' + fails.map(f => '• ' + f.error.message).join('\n'));
+    } else if (added === 0) {
+      alert('No new checkpoint submissions found. (Files must be a checkpoint PDF printed by the form, a backup JSON, or a sheet CSV.)');
+    }
+    render();
+  }).catch(err => {
+    alert('Could not load file: ' + err.message);
+  });
 }
 
 //==============================================================================
@@ -1793,7 +1859,7 @@ input.type = 'file';
 input.id = 'hidden-file-input';
 input.style.display = 'none';
 input.multiple = true;
-input.accept = '.json,.csv,application/json,text/csv';
+input.accept = '.pdf,application/pdf,.json,application/json,.csv,text/csv';
 input.addEventListener('change', e => handleFiles(e.target.files));
 document.body.appendChild(input);
 
